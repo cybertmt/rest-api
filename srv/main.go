@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"restapisrv/srv/api"
 	"restapisrv/srv/storage"
-	"restapisrv/srv/storage/memdb"
+	"restapisrv/srv/storage/postgres"
 )
 
 func main() {
@@ -47,10 +47,10 @@ func main() {
 	//Создаём объекты баз данных.
 	//
 	//БД в памяти.
-	db1 := memdb.New()
+	//db1 := memdb.New()
 
 	// Реляционная БД PostgreSQL.
-	//db2, err := postgres.New("postgres://cyber:" + pwd + "@" + host + "/" + bdName)
+	db2, _ := postgres.New("postgres://" + user + ":" + pwd + "@" + host + "/" + bdName)
 	//if err != nil {
 	//	ErrorChannel <- err
 	//}
@@ -62,7 +62,7 @@ func main() {
 	//_, _, _ = db1, db2, db3
 
 	//Инициализируем хранилище сервера конкретной БД.
-	srv.db = db1
+	srv.db = db2
 
 	// Запускаем запись новостей из канал PostChannel в бд в отдельной горутине
 	//go func() {

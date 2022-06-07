@@ -56,8 +56,8 @@ func (s *Storage) DeletePost(p storage.Post) error {
 	return rows.Err()
 }
 
-// PostById возвращает статьи, отсортированные по времени создания, в количестве = n.
-func (s *Storage) PostsNItems(p storage.Post) ([]storage.Post, error) {
+// PostsNItems возвращает статьи, отсортированные по времени создания, в количестве = n.
+func (s *Storage) PostsNItems(p storage.Post) ([]storage.LocationItem, error) {
 	n := p.ID
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
@@ -70,25 +70,24 @@ func (s *Storage) PostsNItems(p storage.Post) ([]storage.Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	var posts []storage.Post
+	var locations []storage.LocationItem
 	// итерирование по результату выполнения запроса
 	// и сканирование каждой строки в переменную
 	for rows.Next() {
-		var t storage.Post
+		var t storage.LocationItem
 		err = rows.Scan(
 			&t.ID,
 			&t.Title,
 			&t.Content,
-			&t.PubTime,
 			&t.Link,
 		)
 		if err != nil {
 			return nil, err
 		}
 		// добавление переменной в массив результатов
-		posts = append(posts, t)
+		locations = append(locations, t)
 
 	}
 	// ВАЖНО не забыть проверить rows.Err()
-	return posts, rows.Err()
+	return locations, rows.Err()
 }
