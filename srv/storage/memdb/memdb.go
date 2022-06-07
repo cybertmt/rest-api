@@ -18,7 +18,7 @@ func (s *Store) DeletePost(storage.Post) error {
 	return nil
 }
 
-func (s *Store) PostsNItems(storage.Post) ([]storage.LocationItem, error) {
+func (s *Store) GetAllItems() ([]storage.LocationItem, error) {
 	return locations, nil
 }
 

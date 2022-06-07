@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"restapisrv/srv/api"
 	"restapisrv/srv/storage"
@@ -49,11 +50,11 @@ func main() {
 	//БД в памяти.
 	//db1 := memdb.New()
 
-	// Реляционная БД PostgreSQL.
-	db2, _ := postgres.New("postgres://" + user + ":" + pwd + "@" + host + "/" + bdName)
-	//if err != nil {
-	//	ErrorChannel <- err
-	//}
+	// Реляционная БД PostgresSQL.
+	db2, err := postgres.New("postgres://" + user + ":" + pwd + "@" + host + "/" + bdName)
+	if err != nil {
+		fmt.Println(err)
+	}
 	//Документная БД MongoDB.
 	//db3, err := mongo.New("mongodb://" + host + ":27017/")
 	//if err != nil {

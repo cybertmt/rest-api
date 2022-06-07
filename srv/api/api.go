@@ -40,15 +40,15 @@ func (api *API) Router() *mux.Router {
 func (api *API) postsHandlerNItems(w http.ResponseWriter, r *http.Request) {
 	//Allow CORS here By * or specific origin
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var p storage.Post
+	var p storage.LocationItem
 	n, _ := strconv.Atoi(mux.Vars(r)["n"])
 	p.ID = n
-	post, err := api.db.PostsNItems(p)
+	location, err := api.db.GetAllItems()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	bytes, err := json.Marshal(post)
+	bytes, err := json.Marshal(location)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

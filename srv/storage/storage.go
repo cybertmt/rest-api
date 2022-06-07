@@ -21,7 +21,7 @@ type LocationItem struct {
 
 // Interface задаёт контракт на работу с БД.
 type Interface interface {
-	AddPost(Post) error                       // создание новой публикации
-	DeletePost(Post) error                    // удаление публикации по ID
-	PostsNItems(Post) ([]LocationItem, error) // получение публикации по ID
+	AddPost(Post) error                   // создание новой публикации
+	DeletePost(Post) error                // удаление публикации по ID
+	GetAllItems() ([]LocationItem, error) // получение публикации по ID
 }

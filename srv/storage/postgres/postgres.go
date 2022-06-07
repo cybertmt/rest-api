@@ -56,16 +56,14 @@ func (s *Storage) DeletePost(p storage.Post) error {
 	return rows.Err()
 }
 
-// PostsNItems возвращает статьи, отсортированные по времени создания, в количестве = n.
-func (s *Storage) PostsNItems(p storage.Post) ([]storage.LocationItem, error) {
-	n := p.ID
+// GetAllItems возвращает статьи, отсортированные по времени создания, в количестве = n.
+func (s *Storage) GetAllItems() ([]storage.LocationItem, error) {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
 			*
-		FROM posts
-		ORDER BY pubTime DESC
-		LIMIT $1;
-	`, n,
+		FROM locations
+		ORDER BY id ASC;
+	`,
 	)
 	if err != nil {
 		return nil, err
@@ -80,6 +78,8 @@ func (s *Storage) PostsNItems(p storage.Post) ([]storage.LocationItem, error) {
 			&t.Title,
 			&t.Content,
 			&t.Link,
+			&t.Latitude,
+			&t.Longitude,
 		)
 		if err != nil {
 			return nil, err
