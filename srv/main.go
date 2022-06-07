@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"restapisrv/srv/api"
 	"restapisrv/srv/storage"
@@ -9,6 +8,7 @@ import (
 )
 
 func main() {
+
 	// канал для чтения новостей rss-каналов и записи в бд
 	//PostChannel := make(chan Post)
 	// канал сбора ошибок rss обработчика
@@ -51,10 +51,10 @@ func main() {
 	//db1 := memdb.New()
 
 	// Реляционная БД PostgresSQL.
-	db2, err := postgres.New("postgres://" + user + ":" + pwd + "@" + host + "/" + bdName)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db2, _ := postgres.New("postgres://" + user + ":" + pwd + "@" + host + "/" + bdName)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 	//Документная БД MongoDB.
 	//db3, err := mongo.New("mongodb://" + host + ":27017/")
 	//if err != nil {

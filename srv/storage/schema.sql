@@ -1,4 +1,6 @@
 DROP TABLE IF EXISTS locations;
+DROP TABLE IF EXISTS pharmacy;
+DROP TABLE IF EXISTS medicine;
 
 CREATE TABLE locations
 (
@@ -9,6 +11,28 @@ CREATE TABLE locations
     latitude FLOAT NOT NULL,
     longitude  FLOAT NOT NULL
 
+);
+
+CREATE TABLE medicine
+(
+    id      SERIAL PRIMARY KEY,
+    title   TEXT   NOT NULL,
+    content1 TEXT   NOT NULL,
+    content2 TEXT   NOT NULL,
+    content3 TEXT   NOT NULL,
+    content4 TEXT   NOT NULL,
+    price FLOAT NOT NULL
+);
+
+CREATE TABLE pharmacy
+(
+    id      SERIAL PRIMARY KEY,
+    title   TEXT   NOT NULL,
+    content TEXT   NOT NULL,
+    link    TEXT   NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude  FLOAT NOT NULL,
+    address TEXT NOT NULL
 );
 
 -- INSERT INTO posts (title, content, pubtime, link) VALUES ('Статья 1', 'Содержание статьи 1', 1,'http//http1');

@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jackc/pgx/v4 v4.16.1
+	github.com/kelvins/geocoder v0.0.0-20200113010004-f579500e9e27
 )
 
 require (
