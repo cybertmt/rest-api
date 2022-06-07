@@ -233,7 +233,7 @@ func main() {
 	// Предаём серверу маршрутизатор запросов,
 	// поэтому сервер будет все запросы отправлять на маршрутизатор.
 	// Маршрутизатор будет выбирать нужный обработчик.
-	_ = http.ListenAndServe(":80", srv.api.Router())
+	_ = http.ListenAndServe(":7531", srv.api.Router())
 	//	if err != nil {
 	//		ErrorChannel <- err
 	//	}
