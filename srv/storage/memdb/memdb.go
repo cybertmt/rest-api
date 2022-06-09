@@ -10,15 +10,15 @@ func New() *Store {
 	return new(Store)
 }
 
-func (s *Store) AddPost(storage.Post) error {
+func (s *Store) AddItem(item storage.LocationItem) error {
 	return nil
 }
 
-func (s *Store) DeletePost(storage.Post) error {
+func (s *Store) DeleteItem(item storage.LocationItem) error {
 	return nil
 }
 
-func (s *Store) GetAllItems() ([]storage.LocationItem, error) {
+func (s *Store) Items() ([]storage.LocationItem, error) {
 	return locations, nil
 }
 

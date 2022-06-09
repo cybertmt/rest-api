@@ -44,4 +44,4 @@ CREATE TABLE pharmacy
 
 INSERT INTO locations (title, content, link, latitude, longitude) VALUES ('Msc Apt', 'Moscow', 'https://ya.ru', 55.751244,37.618423);
 INSERT INTO locations (title, content, link, latitude, longitude) VALUES ('NY Apt', 'New York', 'https://google.com', 40.650002,-73.949997);
-INSERT INTO locations (title, content, link, latitude, longitude) VALUES ('Syd Apt', 'Sydney', 'https://yahoo.com', 151.268865,37.618423);
+INSERT INTO locations (title, content, link, latitude, longitude) VALUES ('Syd Apt', 'Sydney', 'https://yahoo.com', -33.865143,151.209900);

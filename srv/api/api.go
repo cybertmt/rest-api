@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"restapisrv/srv/storage"
-	"strconv"
 )
 
 // API Программный интерфейс сервера GoNews
@@ -26,8 +25,9 @@ func New(db storage.Interface) *API {
 
 // endpoints Регистрация обработчиков API.
 func (api *API) endpoints() {
-	api.router.HandleFunc("/items", api.postsHandlerNItems).Methods(http.MethodGet, http.MethodOptions)
-	api.router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webapp"))))
+	api.router.HandleFunc("/items", api.postsHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/items", api.addItemHandler).Methods(http.MethodPost, http.MethodOptions)
+	api.router.HandleFunc("/items", api.deleteItemHandler).Methods(http.MethodDelete, http.MethodOptions)
 }
 
 // Router Получение маршрутизатора запросов.
@@ -36,22 +36,49 @@ func (api *API) Router() *mux.Router {
 	return api.router
 }
 
-// postsHandlerNItems Получение публикаций, отсортированных по времени создания, в количестве = n.
-func (api *API) postsHandlerNItems(w http.ResponseWriter, r *http.Request) {
-	//Allow CORS here By * or specific origin
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+// Получение всех публикаций.
+func (api *API) postsHandler(w http.ResponseWriter, r *http.Request) {
+	items, err := api.db.Items()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	bytes, err := json.Marshal(items)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(bytes)
+}
+
+// Добавление публикации.
+func (api *API) addItemHandler(w http.ResponseWriter, r *http.Request) {
 	var p storage.LocationItem
-	n, _ := strconv.Atoi(mux.Vars(r)["n"])
-	p.ID = n
-	location, err := api.db.GetAllItems()
+	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	bytes, err := json.Marshal(location)
+	err = api.db.AddItem(p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, _ = w.Write(bytes)
+	w.WriteHeader(http.StatusOK)
+}
+
+// Удаление публикации.
+func (api *API) deleteItemHandler(w http.ResponseWriter, r *http.Request) {
+	var p storage.LocationItem
+	err := json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = api.db.DeleteItem(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

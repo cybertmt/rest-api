@@ -23,14 +23,14 @@ func New(constr string) (*Storage, error) {
 	return &s, nil
 }
 
-// AddPost создает статью и проверяет, если статья с таким title уже существует
-func (s *Storage) AddPost(p storage.Post) error {
+// AddItem создает статью и проверяет, если статья с таким title уже существует
+func (s *Storage) AddItem(p storage.LocationItem) error {
 	rows, err := s.db.Query(context.Background(), `
-		INSERT INTO posts (title, content, pubTime, link)
-       	SELECT $1, $2, $3, $4
-       	WHERE NOT EXISTS (SELECT 1 FROM posts WHERE title=$1);
+		INSERT INTO locations (title, content, link, latitude, longitude)
+       	SELECT $1, $2, $3, $4, $5
+       	WHERE NOT EXISTS (SELECT 1 FROM locations WHERE title=$1);
 	`,
-		p.Title, p.Content, p.PubTime, p.Link,
+		p.Title, p.Content, p.Link, p.Latitude, p.Longitude,
 	)
 	if err != nil {
 		return err
@@ -40,11 +40,11 @@ func (s *Storage) AddPost(p storage.Post) error {
 	return rows.Err()
 }
 
-// DeletePost удаляет статью по id.
-func (s *Storage) DeletePost(p storage.Post) error {
+// DeleteItem удаляет статью по id.
+func (s *Storage) DeleteItem(p storage.LocationItem) error {
 	rows, err := s.db.Query(context.Background(), `
-		DELETE FROM posts
-		WHERE posts.id = $1;
+		DELETE FROM locations
+		WHERE locations.id = $1;
 	`,
 		p.ID,
 	)
@@ -56,8 +56,8 @@ func (s *Storage) DeletePost(p storage.Post) error {
 	return rows.Err()
 }
 
-// GetAllItems возвращает статьи, отсортированные по времени создания, в количестве = n.
-func (s *Storage) GetAllItems() ([]storage.LocationItem, error) {
+// Items возвращает статьи, отсортированные по времени создания, в количестве = n.
+func (s *Storage) Items() ([]storage.LocationItem, error) {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
 			*
