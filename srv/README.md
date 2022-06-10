@@ -5,6 +5,11 @@
 curl http://cybertmtx.crabdance.com:7531/items
 ```
 
+<b>// Get string items</b>
+```
+curl http://cybertmtx.crabdance.com:7531/stringitems
+```
+
 <b>// Add items</b>
 ```
 curl -X "POST" -d '{"title":"Msc Apt","content":"Moscow","link":"https://ya.ru","lat":55.751244, "lon":37.618423}' "http://cybertmtx.crabdance.com:7531/items"

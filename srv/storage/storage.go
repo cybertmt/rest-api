@@ -19,10 +19,21 @@ type LocationItem struct {
 	Longitude float64 `json:"lon"`     // долгота
 }
 
+// StringLocationItem - balloon.
+type StringLocationItem struct {
+	ID        string `json:"id"`      // номер записи
+	Title     string `json:"title"`   // заголовок публикации
+	Content   string `json:"content"` // содержание публикации
+	Link      string `json:"link"`    // ссылка на источник
+	Latitude  string `json:"lat"`     // широта
+	Longitude string `json:"lon"`     // долгота
+}
+
 // Interface задаёт контракт на работу с БД.
 type Interface interface {
-	Items() ([]LocationItem, error)     // получение всех публикаций
-	AddItem(item LocationItem) error    // создание новой публикации
-	DeleteItem(item LocationItem) error // удаление публикации по ID
+	Items() ([]LocationItem, error)             // получение всех публикаций
+	StringItems() ([]StringLocationItem, error) // получение всех публикаций
+	AddItem(item LocationItem) error            // создание новой публикации
+	DeleteItem(item LocationItem) error         // удаление публикации по ID
 	//PostById(Post) ([]Post, error)  // получение публикации по ID
 }

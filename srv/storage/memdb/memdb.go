@@ -22,6 +22,10 @@ func (s *Store) Items() ([]storage.LocationItem, error) {
 	return locations, nil
 }
 
+func (s *Store) StringItems() ([]storage.StringLocationItem, error) {
+	return stringLocations, nil
+}
+
 var posts = []storage.Post{
 	{
 		ID:      1,
@@ -70,5 +74,32 @@ var locations = []storage.LocationItem{
 		Link:      "https://yahoo.com",
 		Latitude:  151.268865,
 		Longitude: -33.885690,
+	},
+}
+
+var stringLocations = []storage.StringLocationItem{
+	{
+		ID:        "1",
+		Title:     "Msc Apt",
+		Content:   "Moscow",
+		Link:      "https://ya.ru",
+		Latitude:  "55.751244",
+		Longitude: "37.618423",
+	},
+	{
+		ID:        "2",
+		Title:     "NY Apt",
+		Content:   "New York",
+		Link:      "https://google.com",
+		Latitude:  "40.650002",
+		Longitude: "-73.949997",
+	},
+	{
+		ID:        "3",
+		Title:     "SyD Apt",
+		Content:   "Sydney",
+		Link:      "https://yahoo.com",
+		Latitude:  "151.268865",
+		Longitude: "-33.885690",
 	},
 }

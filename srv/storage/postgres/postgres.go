@@ -2,8 +2,10 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"restapisrv/srv/storage"
+	"strconv"
 )
 
 // Storage Хранилище данных.
@@ -90,4 +92,49 @@ func (s *Storage) Items() ([]storage.LocationItem, error) {
 	}
 	// ВАЖНО не забыть проверить rows.Err()
 	return locations, rows.Err()
+}
+
+// StringItems возвращает статьи, отсортированные по времени создания, в количестве = n.
+func (s *Storage) StringItems() ([]storage.StringLocationItem, error) {
+	rows, err := s.db.Query(context.Background(), `
+		SELECT 
+			*
+		FROM locations
+		ORDER BY id ASC;
+	`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var stringLocations []storage.StringLocationItem
+	// итерирование по результату выполнения запроса
+	// и сканирование каждой строки в переменную
+	for rows.Next() {
+
+		var t storage.LocationItem
+		err = rows.Scan(
+			&t.ID,
+			&t.Title,
+			&t.Content,
+			&t.Link,
+			&t.Latitude,
+			&t.Longitude,
+		)
+		if err != nil {
+			return nil, err
+		}
+		st := storage.StringLocationItem{
+			ID:        strconv.Itoa(t.ID),
+			Title:     t.Title,
+			Content:   t.Content,
+			Link:      t.Link,
+			Latitude:  fmt.Sprintf("%f", t.Latitude),
+			Longitude: fmt.Sprintf("%f", t.Longitude),
+		}
+		// добавление переменной в массив результатов
+		stringLocations = append(stringLocations, st)
+
+	}
+	// ВАЖНО не забыть проверить rows.Err()
+	return stringLocations, rows.Err()
 }
