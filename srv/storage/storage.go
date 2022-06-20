@@ -35,5 +35,6 @@ type Interface interface {
 	StringItems() ([]StringLocationItem, error) // получение всех публикаций
 	AddItem(item LocationItem) error            // создание новой публикации
 	DeleteItem(item LocationItem) error         // удаление публикации по ID
+	DeleteAllItem() error                       // удаление всех публикаций
 	//PostById(Post) ([]Post, error)  // получение публикации по ID
 }

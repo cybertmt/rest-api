@@ -29,6 +29,7 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/stringitems", api.StringItemsHandler).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/items", api.addItemHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/items", api.deleteItemHandler).Methods(http.MethodDelete, http.MethodOptions)
+	api.router.HandleFunc("/clear", api.deleteAllItemHandler).Methods(http.MethodDelete, http.MethodOptions)
 }
 
 // Router Получение маршрутизатора запросов.
@@ -81,9 +82,10 @@ func (api *API) addItemHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Item Added\n"))
 }
 
-// deleteItemHandler Удаление публикации.
+// deleteItemHandler Удаление публикации по ID.
 func (api *API) deleteItemHandler(w http.ResponseWriter, r *http.Request) {
 	var p storage.LocationItem
 	err := json.NewDecoder(r.Body).Decode(&p)
@@ -97,4 +99,16 @@ func (api *API) deleteItemHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Item Deleted\n"))
+}
+
+// deleteAllItemHandler Удаление всех публикаций.
+func (api *API) deleteAllItemHandler(w http.ResponseWriter, r *http.Request) {
+	err := api.db.DeleteAllItem()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("All Items Deleted\n"))
 }

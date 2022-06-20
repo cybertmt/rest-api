@@ -58,6 +58,20 @@ func (s *Storage) DeleteItem(p storage.LocationItem) error {
 	return rows.Err()
 }
 
+// DeleteAllItem удаляет все элементы.
+func (s *Storage) DeleteAllItem() error {
+	rows, err := s.db.Query(context.Background(), `
+		TRUNCATE TABLE locations RESTART IDENTITY;
+	`,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	// ВАЖНО не забыть проверить rows.Err()
+	return rows.Err()
+}
+
 // Items возвращает статьи, отсортированные по времени создания, в количестве = n.
 func (s *Storage) Items() ([]storage.LocationItem, error) {
 	rows, err := s.db.Query(context.Background(), `

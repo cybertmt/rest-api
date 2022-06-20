@@ -18,6 +18,10 @@ func (s *Store) DeleteItem(item storage.LocationItem) error {
 	return nil
 }
 
+func (s *Store) DeleteAllItem() error {
+	return nil
+}
+
 func (s *Store) Items() ([]storage.LocationItem, error) {
 	return locations, nil
 }

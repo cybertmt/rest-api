@@ -20,4 +20,8 @@ curl -X "POST" -d '{"title":"Syd Apt","content":"Sydney","link":"https://yahoo.c
 ```
 curl -X "DELETE" -d '{"id":2}' "https://cybertmtx.crabdance.com/items"
 ```
+**// Delete all items**
+```
+curl -X "DELETE" "https://cybertmtx.crabdance.com/clear"
+```
 
