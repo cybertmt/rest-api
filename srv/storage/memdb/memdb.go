@@ -1,6 +1,9 @@
 package memdb
 
-import "restapisrv/srv/storage"
+import (
+	"restapisrv/srv/storage"
+	"strings"
+)
 
 // Store Хранилище данных.
 type Store struct{}
@@ -28,6 +31,17 @@ func (s *Store) Items() ([]storage.LocationItem, error) {
 
 func (s *Store) StringItems() ([]storage.StringLocationItem, error) {
 	return stringLocations, nil
+}
+
+func (s *Store) SortedItems(item storage.LocationItem) ([]storage.LocationItem, error) {
+	var sortedLocations []storage.LocationItem
+	subStr := item.Title
+	for _, l := range locations {
+		if strings.Contains(strings.ToLower(l.Title), subStr) {
+			sortedLocations = append(sortedLocations, l)
+		}
+	}
+	return sortedLocations, nil
 }
 
 var posts = []storage.Post{

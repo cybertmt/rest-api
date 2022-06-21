@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"restapisrv/srv/storage"
 	"strconv"
+	"strings"
 )
 
 // Storage Хранилище данных.
@@ -151,4 +152,43 @@ func (s *Storage) StringItems() ([]storage.StringLocationItem, error) {
 	}
 	// ВАЖНО не забыть проверить rows.Err()
 	return stringLocations, rows.Err()
+}
+
+// SortedItems возвращает статьи, отсортированные по времени создания, в количестве = n.
+func (s *Storage) SortedItems(p storage.LocationItem) ([]storage.LocationItem, error) {
+	filter := strings.ToLower(p.Title)
+	rows, err := s.db.Query(context.Background(), `
+		SELECT 
+			*
+		FROM locations
+		WHERE lower(title) LIKE '%' || $1 || '%'
+		ORDER BY id ASC;
+	`,
+		filter,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var locations []storage.LocationItem
+	// итерирование по результату выполнения запроса
+	// и сканирование каждой строки в переменную
+	for rows.Next() {
+		var t storage.LocationItem
+		err = rows.Scan(
+			&t.ID,
+			&t.Title,
+			&t.Content,
+			&t.Link,
+			&t.Latitude,
+			&t.Longitude,
+		)
+		if err != nil {
+			return nil, err
+		}
+		// добавление переменной в массив результатов
+		locations = append(locations, t)
+
+	}
+	// ВАЖНО не забыть проверить rows.Err()
+	return locations, rows.Err()
 }
