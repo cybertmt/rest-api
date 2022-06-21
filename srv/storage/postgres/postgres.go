@@ -160,7 +160,7 @@ func (s *Storage) SortedItems(p storage.LocationItem) ([]storage.LocationItem, e
 			*
 		FROM locations
 		WHERE lower(title) LIKE '%' || lower($1) || '%'
-		ORDER BY id ASC;
+		ORDER BY position(lower($1) in lower(title)), title;
 	`,
 		p.Title,
 	)
