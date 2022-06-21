@@ -6,7 +6,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"restapisrv/srv/storage"
 	"strconv"
-	"strings"
 )
 
 // Storage Хранилище данных.
@@ -156,15 +155,14 @@ func (s *Storage) StringItems() ([]storage.StringLocationItem, error) {
 
 // SortedItems возвращает статьи, отсортированные по времени создания, в количестве = n.
 func (s *Storage) SortedItems(p storage.LocationItem) ([]storage.LocationItem, error) {
-	filter := strings.ToLower(p.Title)
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
 			*
 		FROM locations
-		WHERE lower(title) LIKE '%' || $1 || '%'
+		WHERE lower(title) LIKE '%' || lower($1) || '%'
 		ORDER BY id ASC;
 	`,
-		filter,
+		p.Title,
 	)
 	if err != nil {
 		return nil, err
