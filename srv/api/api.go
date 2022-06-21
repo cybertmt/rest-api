@@ -30,7 +30,7 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/items", api.AddItemHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/items", api.DeleteItemHandler).Methods(http.MethodDelete, http.MethodOptions)
 	api.router.HandleFunc("/clear", api.DeleteAllItemHandler).Methods(http.MethodDelete, http.MethodOptions)
-	api.router.HandleFunc("/sortitems", api.SortedItemsHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/sortitems", api.SortedItemsHandler).Methods(http.MethodPost, http.MethodOptions)
 }
 
 // Router Получение маршрутизатора запросов.

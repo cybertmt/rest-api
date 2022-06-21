@@ -26,6 +26,6 @@ curl -X "DELETE" "https://cybertmtx.crabdance.com/clear"
 ```
 **// Sort items**
 ```
-curl -X "GET" -d '{"title":"sy"}' "https://cybertmtx.crabdance.com/sortitems"
+curl -X "POST" -d '{"title":"sy"}' "https://cybertmtx.crabdance.com/sortitems"
 ```
 
