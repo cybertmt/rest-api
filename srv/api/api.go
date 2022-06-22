@@ -1,9 +1,11 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -150,6 +152,12 @@ func (api *API) Logger(next http.Handler) http.Handler {
 			return
 		}
 		defer file.Close()
+		var p storage.LocationItem
+		buf, _ := io.ReadAll(r.Body)
+		rdr1 := io.NopCloser(bytes.NewBuffer(buf))
+		rdr2 := io.NopCloser(bytes.NewBuffer(buf))
+		err = json.NewDecoder(rdr1).Decode(&p)
+		r.Body = rdr2 // OK since rdr2 implements the io.ReadCloser interface
 
 		rec := httptest.NewRecorder()
 		next.ServeHTTP(rec, r)
@@ -157,6 +165,9 @@ func (api *API) Logger(next http.Handler) http.Handler {
 			w.Header()[k] = v
 		}
 		w.WriteHeader(rec.Code)
+		if err != nil {
+			return
+		}
 		rec.Body.WriteTo(w)
 
 		fmt.Fprintf(file, "Time: %s\n", time.Now().Format(time.RFC1123))
@@ -164,6 +175,7 @@ func (api *API) Logger(next http.Handler) http.Handler {
 		fmt.Fprintf(file, "Method: %s\n", r.Method)
 		fmt.Fprintf(file, "Proto: %s\n", r.Proto)
 		fmt.Fprintf(file, "URL: %s\n", r.RequestURI)
+		fmt.Fprintf(file, "Options: %+v\n", p)
 		fmt.Fprintf(file, "HTTP Status: %d\n", rec.Result().StatusCode)
 		fmt.Fprintln(file)
 	})
