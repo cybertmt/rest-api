@@ -2,10 +2,16 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"net/http/httptest"
+	"os"
 	"restapisrv/srv/storage"
+	"time"
 )
+
+const logfile = "/var/log/restapi.log"
 
 // API Программный интерфейс сервера GoNews
 type API struct {
@@ -31,6 +37,7 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/items", api.DeleteItemHandler).Methods(http.MethodDelete, http.MethodOptions)
 	api.router.HandleFunc("/clear", api.DeleteAllItemHandler).Methods(http.MethodDelete, http.MethodOptions)
 	api.router.HandleFunc("/sortitems", api.SortedItemsHandler).Methods(http.MethodPost, http.MethodOptions)
+	api.router.Use(api.Logger)
 }
 
 // Router Получение маршрутизатора запросов.
@@ -133,4 +140,31 @@ func (api *API) SortedItemsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(bytes)
+}
+
+func (api *API) Logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		file, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("os.OpenFile error: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		rec := httptest.NewRecorder()
+		next.ServeHTTP(rec, r)
+		for k, v := range rec.Result().Header {
+			w.Header()[k] = v
+		}
+		w.WriteHeader(rec.Code)
+		rec.Body.WriteTo(w)
+
+		fmt.Fprintf(file, "Time: %s\n", time.Now().Format(time.RFC1123))
+		fmt.Fprintf(file, "Remote IP: %s\n", r.RemoteAddr)
+		fmt.Fprintf(file, "Method: %s\n", r.Method)
+		fmt.Fprintf(file, "Proto: %s\n", r.Proto)
+		fmt.Fprintf(file, "URL: %s\n", r.RequestURI)
+		fmt.Fprintf(file, "HTTP Status: %d\n", rec.Result().StatusCode)
+		fmt.Fprintln(file)
+	})
 }
