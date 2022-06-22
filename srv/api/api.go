@@ -153,11 +153,13 @@ func (api *API) Logger(next http.Handler) http.Handler {
 		}
 		defer file.Close()
 		var p storage.LocationItem
-		buf, _ := io.ReadAll(r.Body)
-		rdr1 := io.NopCloser(bytes.NewBuffer(buf))
-		rdr2 := io.NopCloser(bytes.NewBuffer(buf))
-		err = json.NewDecoder(rdr1).Decode(&p)
-		r.Body = rdr2 // OK since rdr2 implements the io.ReadCloser interface
+		if r.Method != "GET" && r.RequestURI != "/clear" {
+			buf, _ := io.ReadAll(r.Body)
+			rdr1 := io.NopCloser(bytes.NewBuffer(buf))
+			rdr2 := io.NopCloser(bytes.NewBuffer(buf))
+			err = json.NewDecoder(rdr1).Decode(&p)
+			r.Body = rdr2 // OK since rdr2 implements the io.ReadCloser interface
+		}
 
 		rec := httptest.NewRecorder()
 		next.ServeHTTP(rec, r)
