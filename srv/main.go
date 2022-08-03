@@ -58,7 +58,7 @@ func main() {
 	//db1 := memdb.New()
 
 	// Реляционная БД PostgresSQL.
-	db2, _ := postgres.New("postgres://" + user + ":" + pwd + "@" + host + "/" + bdName)
+	db2, _ := postgres.New("postgres://" + user + ":" + pwd + "@" + host + ":" + port + "/" + bdName)
 	//if err != nil {
 	//	fmt.Println(err)
 	//}
