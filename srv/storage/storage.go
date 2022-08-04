@@ -1,15 +1,5 @@
 package storage
 
-// // LocationItem - balloon.
-// type LocationItem struct {
-// 	ID        int     `json:"id"`      // номер записи
-// 	Title     string  `json:"title"`   // заголовок публикации
-// 	Content   string  `json:"content"` // содержание публикации
-// 	Link      string  `json:"link"`    // ссылка на источник
-// 	Latitude  float64 `json:"lat"`     // широта
-// 	Longitude float64 `json:"lon"`     // долгота
-// }
-
 // ProductItem - продукт.
 type ProductItem struct {
 	Prod_id    int    `json:"prod_id"`
@@ -32,6 +22,22 @@ type StoreItem struct {
 	Store_longitude float64 `json:"store_lon"`
 }
 
+// PriceItem - цена на товар в магазине.
+type PriceItem struct {
+	Store_id int     `json:"store_id"`
+	Prod_id  int     `json:"prod_id"`
+	Price    float64 `json:"price"`
+}
+
+// PriceList - цена на товар в магазине.
+type PriceListItem struct {
+	Prod_name       string  `json:"prod_name"`
+	Store_name      string  `json:"store_name"`
+	Store_latitude  float64 `json:"store_lat"`
+	Store_longitude float64 `json:"store_lon"`
+	Price           float64 `json:"price"`
+}
+
 // RestInterface задаёт новый контракт на работу с БД Products Stores.
 type RestInterface interface {
 	Products() ([]ProductItem, error)                             // получение всех продуктов
@@ -43,4 +49,9 @@ type RestInterface interface {
 	AddStore(store StoreItem) error                               // создание новой записи магазина
 	DeleteStore(store StoreItem) error                            // удаление магазина по ID
 	DeleteAllStores() error                                       // удаление всех магазинов, очистка таблицы
+	AddUpdatePrice(price PriceItem) error                         // добавление или обновление цены
+	DeletePrice(price PriceItem) error                            // удаление цены по ID магазина и продукта
+	DeleteAllPrices() error                                       // удаление всех цен, очистка таблицы
+	PriceList() ([]PriceListItem, error)                          // получение всех цен
+	ProductPrice(price PriceListItem) ([]PriceListItem, error)    // получение всех цен по названию продукта
 }

@@ -26,8 +26,8 @@ CREATE TABLE stores
 
 CREATE TABLE products_stores
 (
-    prod_id    INT REFERENCES products ON UPDATE CASCADE ON DELETE CASCADE,
-    store_id   INT REFERENCES stores ON UPDATE CASCADE ON DELETE CASCADE,
+    prod_id    INT CHECK (prod_id > 0) REFERENCES products ON DELETE CASCADE,
+    store_id   INT CHECK (store_id > 0) REFERENCES stores ON DELETE CASCADE,
     price NUMERIC CHECK (price >= 0),
     PRIMARY KEY (prod_id, store_id)
 );

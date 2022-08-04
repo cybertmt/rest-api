@@ -215,3 +215,113 @@ func (s *Storage) Stores() ([]storage.StoreItem, error) {
 	}
 	return stores, rows.Err()
 }
+
+// Цена.
+// AddUpdatePrice добавляет или обновляет цену на продукт в магазине.
+func (s *Storage) AddUpdatePrice(price storage.PriceItem) error {
+	rows, err := s.db.Query(context.Background(), `
+		INSERT INTO products_stores (prod_id, store_id, price)
+		VALUES ($1,$2,$3)
+		ON CONFLICT (prod_id, store_id) DO UPDATE
+		SET price = $3;
+	`,
+		price.Prod_id, price.Store_id, price.Price,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// DeletePrice удаляет цену на продукт в магазине по id продукта и id магазина.
+func (s *Storage) DeletePrice(st storage.PriceItem) error {
+	rows, err := s.db.Query(context.Background(), `
+		DELETE FROM products_stores
+		WHERE store_id = $1 AND prod_id = $2;
+	`,
+		st.Store_id, st.Prod_id,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// DeleteAllPrices удаляет все цены, очищает таблицу.
+func (s *Storage) DeleteAllPrices() error {
+	rows, err := s.db.Query(context.Background(), `
+		TRUNCATE TABLE products_stores RESTART IDENTITY;
+	`,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// PriceList показывает весь список цен и координат магазинов.
+func (s *Storage) PriceList() ([]storage.PriceListItem, error) {
+	rows, err := s.db.Query(context.Background(), `
+		SELECT products.prod_name, stores.store_name, store_latitude, store_longitude, products_stores.price
+		FROM products INNER JOIN products_stores USING(prod_id)
+					  INNER JOIN stores USING(store_id)
+		ORDER BY 1, 5, 2;
+	`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var prices []storage.PriceListItem
+	for rows.Next() {
+		var t storage.PriceListItem
+		err = rows.Scan(
+			&t.Prod_name,
+			&t.Store_name,
+			&t.Store_latitude,
+			&t.Store_longitude,
+			&t.Price,
+		)
+		if err != nil {
+			return nil, err
+		}
+		prices = append(prices, t)
+
+	}
+	return prices, rows.Err()
+}
+
+// ProductPrice получение всех цен по названию прордукта prod_name.
+func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListItem, error) {
+	rows, err := s.db.Query(context.Background(), `
+		SELECT products.prod_name, stores.store_name, store_latitude, store_longitude, products_stores.price
+		FROM products INNER JOIN products_stores USING(prod_id)
+					  INNER JOIN stores USING(store_id)
+		WHERE products.prod_name = $1
+		ORDER BY 1, 5, 2;
+	`,
+		pr.Prod_name,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var prices []storage.PriceListItem
+	for rows.Next() {
+		var t storage.PriceListItem
+		err = rows.Scan(
+			&t.Prod_name,
+			&t.Store_name,
+			&t.Store_latitude,
+			&t.Store_longitude,
+			&t.Price,
+		)
+		if err != nil {
+			return nil, err
+		}
+		prices = append(prices, t)
+
+	}
+	return prices, rows.Err()
+}

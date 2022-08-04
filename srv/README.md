@@ -1,6 +1,7 @@
 ### Server REST API  
 [https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)  
 [https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)  
+[https://cybertmtx.crabdance.com/pricelist](https://cybertmtx.crabdance.com/pricelist)  
 ###
 **--Products--**  
 **Get all products**
@@ -44,4 +45,32 @@ curl -X "DELETE" -d '{"store_id":2}' "https://cybertmtx.crabdance.com/stores"
 ```
 curl -X "DELETE" "https://cybertmtx.crabdance.com/clearstores"
 ```
-
+**--Prices--**  
+**Create or Update price**
+```
+curl -X "POST" -d '{"prod_id":1,"store_id":1,"price":10.50}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":1,"store_id":2,"price":11.30}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":1,"store_id":3,"price":10.00}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":2,"store_id":1,"price":120.50}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":2,"store_id":2,"price":140.30}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":2,"store_id":3,"price":135.00}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":3,"store_id":1,"price":40.50}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":3,"store_id":2,"price":45.30}' "https://cybertmtx.crabdance.com/prices"
+curl -X "POST" -d '{"prod_id":3,"store_id":3,"price":39.00}' "https://cybertmtx.crabdance.com/prices"
+```
+**Delete price by prod_id and store_id**
+```
+curl -X "DELETE" -d '{"prod_id":2, "store_id":2}' "https://cybertmtx.crabdance.com/prices"
+```
+**Delete all Prices**
+```
+curl -X "DELETE" "https://cybertmtx.crabdance.com/clearprices"
+```
+**Get Price List (sort: prod_name -> price -> store_name)**
+```
+curl https://cybertmtx.crabdance.com/pricelist
+```
+**Get Price List by product name**
+```
+curl -X "POST" -d '{"prod_name":"Панадол"}' "https://cybertmtx.crabdance.com/productprice"
+```

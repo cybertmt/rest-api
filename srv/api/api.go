@@ -43,6 +43,11 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/stores", api.AddStoreHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/stores", api.DeleteStoreHandler).Methods(http.MethodDelete, http.MethodOptions)
 	api.router.HandleFunc("/clearstores", api.DeleteAllStoresHandler).Methods(http.MethodDelete, http.MethodOptions)
+	api.router.HandleFunc("/prices", api.AddUpdatePriceHandler).Methods(http.MethodPost, http.MethodOptions)
+	api.router.HandleFunc("/prices", api.DeletePriceHandler).Methods(http.MethodDelete, http.MethodOptions)
+	api.router.HandleFunc("/clearprices", api.DeleteAllPricesHandler).Methods(http.MethodDelete, http.MethodOptions)
+	api.router.HandleFunc("/pricelist", api.PriceListHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/productprice", api.ProductPriceHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.Use(api.Logger)
 }
 
@@ -62,7 +67,7 @@ func (api *API) Logger(next http.Handler) http.Handler {
 		}
 		defer file.Close()
 		var p storage.ProductItem
-		if r.Method != "GET" && r.RequestURI != "/clearproducts" && r.RequestURI != "/clearstores" {
+		if r.Method != "GET" && r.RequestURI != "/clearproducts" && r.RequestURI != "/clearstores" && r.RequestURI != "/clearprices" {
 			buf, _ := io.ReadAll(r.Body)
 			rdr1 := io.NopCloser(bytes.NewBuffer(buf))
 			rdr2 := io.NopCloser(bytes.NewBuffer(buf))
@@ -233,4 +238,86 @@ func (api *API) DeleteAllStoresHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("All Stores Deleted\n"))
+}
+
+// Цены.
+// AddPriceHandler добавление цены на продукт в магазине.
+func (api *API) AddUpdatePriceHandler(w http.ResponseWriter, r *http.Request) {
+	var pr storage.PriceItem
+	err := json.NewDecoder(r.Body).Decode(&pr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = api.db.AddUpdatePrice(pr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Price Added\n"))
+}
+
+// DeleteAllPricesHandler удаление всех цены.
+func (api *API) DeleteAllPricesHandler(w http.ResponseWriter, r *http.Request) {
+	err := api.db.DeleteAllPrices()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("All Prices Deleted\n"))
+}
+
+// DeletePriceHandler удаление магазина по store_id + product_id.
+func (api *API) DeletePriceHandler(w http.ResponseWriter, r *http.Request) {
+	var pr storage.PriceItem
+	err := json.NewDecoder(r.Body).Decode(&pr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = api.db.DeletePrice(pr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Price Deleted\n"))
+}
+
+// PriceList.
+func (api *API) PriceListHandler(w http.ResponseWriter, r *http.Request) {
+	prices, err := api.db.PriceList()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	bytes, err := json.Marshal(prices)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(bytes)
+}
+
+// ProductPriceHandler получение всех цен по названию прордукта prod_name.
+func (api *API) ProductPriceHandler(w http.ResponseWriter, r *http.Request) {
+	var pr storage.PriceListItem
+	err := json.NewDecoder(r.Body).Decode(&pr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	prices, err := api.db.ProductPrice(pr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	bytes, err := json.Marshal(prices)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(bytes)
 }
