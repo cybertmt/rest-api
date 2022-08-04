@@ -1,8 +1,9 @@
-### Server REST API 
-[https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)
-[https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)
-**-----------Products-----------**
-**Get products**
+### Server REST API  
+[https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)  
+[https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)  
+###
+**--Products--**  
+**Get all products**
 ```
 curl https://cybertmtx.crabdance.com/products
 ```
@@ -12,7 +13,7 @@ curl -X "POST" -d '{"prod_name":"Асперин","prod_desc1":"Асперин: �
 curl -X "POST" -d '{"prod_name":"Панадол","prod_desc1":"Панадол: параметры"}' "https://cybertmtx.crabdance.com/products"
 curl -X "POST" -d '{"prod_name":"Парацетамол","prod_desc1":"Парацетамол: параметры"}' "https://cybertmtx.crabdance.com/products"
 ```
-**Delete product**
+**Delete product by id**
 ```
 curl -X "DELETE" -d '{"prod_id":2}' "https://cybertmtx.crabdance.com/products"
 ```
@@ -20,12 +21,12 @@ curl -X "DELETE" -d '{"prod_id":2}' "https://cybertmtx.crabdance.com/products"
 ```
 curl -X "DELETE" "https://cybertmtx.crabdance.com/clearproducts"
 ```
-**Search sorted products**
+**Search sorted products by substring**
 ```
 curl -X "POST" -d '{"prod_name":"П"}' "https://cybertmtx.crabdance.com/sortproducts"
 ```
-**-----------Stores-----------**
-**Get stores**
+**--Stores--**  
+**Get all stores**
 ```
 curl https://cybertmtx.crabdance.com/stores
 ```
@@ -35,10 +36,11 @@ curl -X "POST" -d '{"store_name":"Ригла","store_address":"Гончарны�
 curl -X "POST" -d '{"store_name":"Здоров.ру","store_address":"ул. Шаболовка, 34, стр. 3, Москва","store_email":"info@zdorov.ru","store_phone":"+7 (495) 363-35-00","store_lat":55.718311,"store_lon":37.607876}' "https://cybertmtx.crabdance.com/stores"
 curl -X "POST" -d '{"store_name":"Горздрав","store_address":"Большая Переяславская ул., 11, Москва","store_email":"info@gorzdrav.ru","store_phone":"+7 (499) 653-62-77","store_lat":55.784470,"store_lon":37.641093}' "https://cybertmtx.crabdance.com/stores"
 ```
-**// Delete store**
+**Delete store by id**
 ```
 curl -X "DELETE" -d '{"store_id":2}' "https://cybertmtx.crabdance.com/stores"
 ```
-**// Delete all stores**
+**Delete all stores**
 ```
 curl -X "DELETE" "https://cybertmtx.crabdance.com/clearstores"
+```
