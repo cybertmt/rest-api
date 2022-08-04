@@ -2,10 +2,9 @@ package postgres
 
 import (
 	"context"
-	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"restapisrv/srv/storage"
-	"strconv"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // Storage Хранилище данных.
@@ -25,168 +24,194 @@ func New(constr string) (*Storage, error) {
 	return &s, nil
 }
 
-// AddItem создает статью и проверяет, если статья с таким title уже существует
-func (s *Storage) AddItem(p storage.LocationItem) error {
+// Новый RestInterface.
+// AddProduct добавляет продукт и проверяет, если продукт с таким name уже существует.
+func (s *Storage) AddProduct(p storage.ProductItem) error {
 	rows, err := s.db.Query(context.Background(), `
-		INSERT INTO locations (title, content, link, latitude, longitude)
+		INSERT INTO products (prod_name, prod_desc1, prod_desc2, prod_desc3, prod_logo)
        	SELECT $1, $2, $3, $4, $5
-       	WHERE NOT EXISTS (SELECT 1 FROM locations WHERE title=$1);
+       	WHERE NOT EXISTS (SELECT 1 FROM products WHERE prod_name=$1);
 	`,
-		p.Title, p.Content, p.Link, p.Latitude, p.Longitude,
+		p.Prod_name, p.Prod_desc1, p.Prod_desc2, p.Prod_desc3, p.Prod_logo,
 	)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	// ВАЖНО не забыть проверить rows.Err()
 	return rows.Err()
 }
 
-// DeleteItem удаляет статью по id.
-func (s *Storage) DeleteItem(p storage.LocationItem) error {
+// DeleteProduct удаляет продукт по id.
+func (s *Storage) DeleteProduct(p storage.ProductItem) error {
 	rows, err := s.db.Query(context.Background(), `
-		DELETE FROM locations
-		WHERE locations.id = $1;
+		DELETE FROM products
+		WHERE products.prod_id = $1;
 	`,
-		p.ID,
+		p.Prod_id,
 	)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	// ВАЖНО не забыть проверить rows.Err()
 	return rows.Err()
 }
 
-// DeleteAllItem удаляет все элементы.
-func (s *Storage) DeleteAllItem() error {
+// DeleteAllProducts удаляет все продукты, очищает таблицу.
+func (s *Storage) DeleteAllProducts() error {
 	rows, err := s.db.Query(context.Background(), `
-		TRUNCATE TABLE locations RESTART IDENTITY;
+		TRUNCATE TABLE products RESTART IDENTITY CASCADE;
 	`,
 	)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	// ВАЖНО не забыть проверить rows.Err()
 	return rows.Err()
 }
 
-// Items возвращает статьи, отсортированные по времени создания, в количестве = n.
-func (s *Storage) Items() ([]storage.LocationItem, error) {
+// Products возвращает продукты, отсортированные по id.
+func (s *Storage) Products() ([]storage.ProductItem, error) {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
 			*
-		FROM locations
-		ORDER BY id ASC;
+		FROM products
+		ORDER BY prod_id;
 	`,
 	)
 	if err != nil {
 		return nil, err
 	}
-	var locations []storage.LocationItem
-	// итерирование по результату выполнения запроса
-	// и сканирование каждой строки в переменную
+	var products []storage.ProductItem
 	for rows.Next() {
-		var t storage.LocationItem
+		var t storage.ProductItem
 		err = rows.Scan(
-			&t.ID,
-			&t.Title,
-			&t.Content,
-			&t.Link,
-			&t.Latitude,
-			&t.Longitude,
+			&t.Prod_id,
+			&t.Prod_name,
+			&t.Prod_desc1,
+			&t.Prod_desc2,
+			&t.Prod_desc3,
+			&t.Prod_logo,
 		)
 		if err != nil {
 			return nil, err
 		}
-		// добавление переменной в массив результатов
-		locations = append(locations, t)
+		products = append(products, t)
 
 	}
-	// ВАЖНО не забыть проверить rows.Err()
-	return locations, rows.Err()
+	return products, rows.Err()
 }
 
-// StringItems возвращает статьи, отсортированные по времени создания, в количестве = n.
-func (s *Storage) StringItems() ([]storage.StringLocationItem, error) {
+// SearchSortedProducts возвращает продукты, отсортированные по паттерну имени.
+func (s *Storage) SearchSortedProducts(p storage.ProductItem) ([]storage.ProductItem, error) {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
 			*
-		FROM locations
-		ORDER BY id ASC;
+		FROM products
+		WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
+		ORDER BY position(lower($1) in lower(prod_name)), prod_name;
 	`,
+		p.Prod_name,
 	)
 	if err != nil {
 		return nil, err
 	}
-	var stringLocations []storage.StringLocationItem
-	// итерирование по результату выполнения запроса
-	// и сканирование каждой строки в переменную
+	var products []storage.ProductItem
 	for rows.Next() {
-
-		var t storage.LocationItem
+		var t storage.ProductItem
 		err = rows.Scan(
-			&t.ID,
-			&t.Title,
-			&t.Content,
-			&t.Link,
-			&t.Latitude,
-			&t.Longitude,
+			&t.Prod_id,
+			&t.Prod_name,
+			&t.Prod_desc1,
+			&t.Prod_desc2,
+			&t.Prod_desc3,
+			&t.Prod_logo,
 		)
 		if err != nil {
 			return nil, err
 		}
-		st := storage.StringLocationItem{
-			ID:        strconv.Itoa(t.ID),
-			Title:     t.Title,
-			Content:   t.Content,
-			Link:      t.Link,
-			Latitude:  fmt.Sprintf("%f", t.Latitude),
-			Longitude: fmt.Sprintf("%f", t.Longitude),
-		}
-		// добавление переменной в массив результатов
-		stringLocations = append(stringLocations, st)
+		products = append(products, t)
 
 	}
-	// ВАЖНО не забыть проверить rows.Err()
-	return stringLocations, rows.Err()
+	return products, rows.Err()
 }
 
-// SortedItems возвращает статьи, отсортированные по времени создания, в количестве = n.
-func (s *Storage) SortedItems(p storage.LocationItem) ([]storage.LocationItem, error) {
+// Магазины.
+// AddStore добавляет магазин и проверяет, если магазин с таким name и address уже существует.
+func (s *Storage) AddStore(st storage.StoreItem) error {
+	rows, err := s.db.Query(context.Background(), `
+		INSERT INTO stores (store_name, store_address, store_phone, store_email,
+							store_logo, store_latitude, store_longitude)
+       	SELECT $1, $2, $3, $4, $5, $6, $7
+       	WHERE NOT EXISTS (SELECT 1 FROM stores WHERE store_address=$2 AND store_name=$1);
+	`,
+		st.Store_name, st.Store_address, st.Store_phone, st.Store_email, st.Store_logo,
+		st.Store_latitude, st.Store_longitude,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// DeleteStore удаляет магазин по id.
+func (s *Storage) DeleteStore(st storage.StoreItem) error {
+	rows, err := s.db.Query(context.Background(), `
+		DELETE FROM stores
+		WHERE stores.store_id = $1;
+	`,
+		st.Store_id,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// DeleteAllStores удаляет все магазины, очищает таблицу.
+func (s *Storage) DeleteAllStores() error {
+	rows, err := s.db.Query(context.Background(), `
+		TRUNCATE TABLE stores RESTART IDENTITY CASCADE;
+	`,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// Stores возвращает магазины, отсортированные по id.
+func (s *Storage) Stores() ([]storage.StoreItem, error) {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT 
 			*
-		FROM locations
-		WHERE lower(title) LIKE '%' || lower($1) || '%'
-		ORDER BY position(lower($1) in lower(title)), title;
+		FROM stores
+		ORDER BY store_id;
 	`,
-		p.Title,
 	)
 	if err != nil {
 		return nil, err
 	}
-	var locations []storage.LocationItem
-	// итерирование по результату выполнения запроса
-	// и сканирование каждой строки в переменную
+	var stores []storage.StoreItem
 	for rows.Next() {
-		var t storage.LocationItem
+		var t storage.StoreItem
 		err = rows.Scan(
-			&t.ID,
-			&t.Title,
-			&t.Content,
-			&t.Link,
-			&t.Latitude,
-			&t.Longitude,
+			&t.Store_id,
+			&t.Store_name,
+			&t.Store_address,
+			&t.Store_phone,
+			&t.Store_email,
+			&t.Store_logo,
+			&t.Store_latitude,
+			&t.Store_longitude,
 		)
 		if err != nil {
 			return nil, err
 		}
-		// добавление переменной в массив результатов
-		locations = append(locations, t)
+		stores = append(stores, t)
 
 	}
-	// ВАЖНО не забыть проверить rows.Err()
-	return locations, rows.Err()
+	return stores, rows.Err()
 }

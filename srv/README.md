@@ -42,3 +42,5 @@ curl -X "DELETE" -d '{"store_id":2}' "https://cybertmtx.crabdance.com/stores"
 **// Delete all stores**
 ```
 curl -X "DELETE" "https://cybertmtx.crabdance.com/clearstores"
+```
+
