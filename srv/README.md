@@ -1,6 +1,7 @@
 ### Server REST API 
 [https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)
 [https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)
+###
 **-----------Products-----------**
 **Get products**
 ```
@@ -35,11 +36,11 @@ curl -X "POST" -d '{"store_name":"Ригла","store_address":"Гончарны�
 curl -X "POST" -d '{"store_name":"Здоров.ру","store_address":"ул. Шаболовка, 34, стр. 3, Москва","store_email":"info@zdorov.ru","store_phone":"+7 (495) 363-35-00","store_lat":55.718311,"store_lon":37.607876}' "https://cybertmtx.crabdance.com/stores"
 curl -X "POST" -d '{"store_name":"Горздрав","store_address":"Большая Переяславская ул., 11, Москва","store_email":"info@gorzdrav.ru","store_phone":"+7 (499) 653-62-77","store_lat":55.784470,"store_lon":37.641093}' "https://cybertmtx.crabdance.com/stores"
 ```
-**// Delete store**
+**Delete store**
 ```
 curl -X "DELETE" -d '{"store_id":2}' "https://cybertmtx.crabdance.com/stores"
 ```
-**// Delete all stores**
+**Delete all stores**
 ```
 curl -X "DELETE" "https://cybertmtx.crabdance.com/clearstores"
 ```
