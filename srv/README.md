@@ -1,10 +1,7 @@
-### Server REST API 
-[https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)
-##
-[https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)
-##
-**-----------Products-----------**
-##
+### Server REST API  
+[https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)  
+[https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)  
+**-----------Products-----------**  
 **Get products**
 ```
 curl https://cybertmtx.crabdance.com/products
