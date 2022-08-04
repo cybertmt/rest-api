@@ -2,7 +2,7 @@
 [https://cybertmtx.crabdance.com/products](https://cybertmtx.crabdance.com/products)  
 [https://cybertmtx.crabdance.com/stores](https://cybertmtx.crabdance.com/stores)  
 ###
-**-----------Products-----------**  
+**Products----------------------**  
 **Get products**
 ```
 curl https://cybertmtx.crabdance.com/products
@@ -25,7 +25,7 @@ curl -X "DELETE" "https://cybertmtx.crabdance.com/clearproducts"
 ```
 curl -X "POST" -d '{"prod_name":"П"}' "https://cybertmtx.crabdance.com/sortproducts"
 ```
-**-----------Stores-----------**
+**Stores----------------------**  
 **Get stores**
 ```
 curl https://cybertmtx.crabdance.com/stores
