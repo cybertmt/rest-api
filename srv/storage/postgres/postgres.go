@@ -265,10 +265,10 @@ func (s *Storage) DeleteAllPrices() error {
 // PriceList показывает весь список цен и координат магазинов.
 func (s *Storage) PriceList() ([]storage.PriceListItem, error) {
 	rows, err := s.db.Query(context.Background(), `
-		SELECT products.prod_name, stores.store_name, store_latitude, store_longitude, products_stores.price
-		FROM products INNER JOIN products_stores USING(prod_id)
-					  INNER JOIN stores USING(store_id)
-		ORDER BY 1, 5, 2;
+	SELECT prod_name, prod_logo, store_name, store_address, store_phone, store_email, store_logo, store_latitude, store_longitude, price
+	FROM products INNER JOIN products_stores USING(prod_id)
+				  INNER JOIN stores USING(store_id)
+	ORDER BY 1, 5, 2;
 	`,
 	)
 	if err != nil {
@@ -279,7 +279,12 @@ func (s *Storage) PriceList() ([]storage.PriceListItem, error) {
 		var t storage.PriceListItem
 		err = rows.Scan(
 			&t.Prod_name,
+			&t.Prod_logo,
 			&t.Store_name,
+			&t.Store_address,
+			&t.Store_phone,
+			&t.Store_email,
+			&t.Store_logo,
 			&t.Store_latitude,
 			&t.Store_longitude,
 			&t.Price,
@@ -296,7 +301,7 @@ func (s *Storage) PriceList() ([]storage.PriceListItem, error) {
 // ProductPrice получение всех цен по названию прордукта prod_name.
 func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListItem, error) {
 	rows, err := s.db.Query(context.Background(), `
-		SELECT products.prod_name, stores.store_name, store_latitude, store_longitude, products_stores.price
+		SELECT prod_name, prod_logo, store_name, store_address, store_phone, store_email, store_logo, store_latitude, store_longitude, price
 		FROM products INNER JOIN products_stores USING(prod_id)
 					  INNER JOIN stores USING(store_id)
 		WHERE products.prod_name = $1
@@ -312,7 +317,12 @@ func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListIte
 		var t storage.PriceListItem
 		err = rows.Scan(
 			&t.Prod_name,
+			&t.Prod_logo,
 			&t.Store_name,
+			&t.Store_address,
+			&t.Store_phone,
+			&t.Store_email,
+			&t.Store_logo,
 			&t.Store_latitude,
 			&t.Store_longitude,
 			&t.Price,

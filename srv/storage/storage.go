@@ -32,7 +32,12 @@ type PriceItem struct {
 // PriceList - цена на товар в магазине.
 type PriceListItem struct {
 	Prod_name       string  `json:"prod_name"`
+	Prod_logo       string  `json:"prod_logo"`
 	Store_name      string  `json:"store_name"`
+	Store_address   string  `json:"store_address"`
+	Store_phone     string  `json:"store_phone"`
+	Store_email     string  `json:"store_email"`
+	Store_logo      string  `json:"store_logo"`
 	Store_latitude  float64 `json:"store_lat"`
 	Store_longitude float64 `json:"store_lon"`
 	Price           float64 `json:"price"`
