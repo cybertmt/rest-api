@@ -10,9 +10,9 @@ curl https://cybertmtx.crabdance.com/products
 ```
 **Create product**
 ```
-curl -X "POST" -d '{"prod_name":"Асперин","prod_desc1":"Асперин: параметры"}' "https://cybertmtx.crabdance.com/products"
-curl -X "POST" -d '{"prod_name":"Панадол","prod_desc1":"Панадол: параметры"}' "https://cybertmtx.crabdance.com/products"
-curl -X "POST" -d '{"prod_name":"Парацетамол","prod_desc1":"Парацетамол: параметры"}' "https://cybertmtx.crabdance.com/products"
+curl -X "POST" -d '{"prod_name":"Асперин","prod_tr_name":"Asperin","prod_desc1":"Асперин: параметры"}' "https://cybertmtx.crabdance.com/products"
+curl -X "POST" -d '{"prod_name":"Панадол","prod_tr_name":"Panadol","prod_desc1":"Панадол: параметры"}' "https://cybertmtx.crabdance.com/products"
+curl -X "POST" -d '{"prod_name":"Парацетамол","prod_tr_name":"Paracetamol","prod_desc1":"Парацетамол: параметры"}' "https://cybertmtx.crabdance.com/products"
 ```
 **Delete product by id**
 ```
