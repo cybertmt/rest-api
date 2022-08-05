@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	cc "restapisrv/srv/constants"
+	c "restapisrv/srv/constants"
 	"restapisrv/srv/storage"
 	"time"
 
@@ -62,7 +62,7 @@ func (api *API) Router() *mux.Router {
 // Logger логирование запросов в файл.
 func (api *API) Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		file, err := os.OpenFile(cc.Logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+		file, err := os.OpenFile(c.Logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("os.OpenFile error: %s", err.Error()), http.StatusInternalServerError)
 			return

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"restapisrv/srv/api"
-	cc "restapisrv/srv/constants"
+	c "restapisrv/srv/constants"
 	"restapisrv/srv/storage"
 	"restapisrv/srv/storage/postgres"
 	"time"
@@ -26,7 +26,7 @@ func main() {
 	var srv server
 
 	// реляционная БД PostgresSQL
-	db1, errCon := postgres.New("postgres://" + cc.User + ":" + cc.Pwd + "@" + cc.Host + ":" + cc.Port + "/" + cc.BdName)
+	db1, errCon := postgres.New("postgres://" + c.User + ":" + c.Pwd + "@" + c.Host + ":" + c.Port + "/" + c.BdName)
 	if errCon != nil {
 		log.Println(errCon)
 	}
@@ -62,9 +62,9 @@ func main() {
 	)
 
 	// configure
-	cfg.Domains = []string{cc.Url}
-	cfg.CacheDir = cc.CertDir
-	cfg.SSLEmail = cc.Email
+	cfg.Domains = []string{c.Url}
+	cfg.CacheDir = c.CertDir
+	cfg.SSLEmail = c.Email
 
 	// Запускаем веб-сервер на порту 80 на всех интерфейсах.
 	// Предаём серверу маршрутизатор запросов,
