@@ -268,7 +268,7 @@ func (s *Storage) PriceList() ([]storage.PriceListItem, error) {
 	SELECT prod_name, prod_logo, store_name, store_address, store_phone, store_email, store_logo, store_latitude, store_longitude, price
 	FROM products INNER JOIN products_stores USING(prod_id)
 				  INNER JOIN stores USING(store_id)
-	ORDER BY 1, 5, 2;
+	ORDER BY 1, 10, 3;
 	`,
 	)
 	if err != nil {
@@ -305,7 +305,7 @@ func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListIte
 		FROM products INNER JOIN products_stores USING(prod_id)
 					  INNER JOIN stores USING(store_id)
 		WHERE products.prod_name = $1
-		ORDER BY 1, 5, 2;
+		ORDER BY 1, 10, 3;
 	`,
 		pr.Prod_name,
 	)
