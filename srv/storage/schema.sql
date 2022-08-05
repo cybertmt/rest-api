@@ -4,12 +4,13 @@ DROP TABLE IF EXISTS stores;
 
 CREATE TABLE products
 (
-    prod_id    SERIAL PRIMARY KEY,
-    prod_name  TEXT   NOT NULL,
-    prod_desc1 TEXT DEFAULT '',
-    prod_desc2 TEXT DEFAULT '',
-    prod_desc3 TEXT DEFAULT '',
-    prod_logo  TEXT DEFAULT ''
+    prod_id      SERIAL PRIMARY KEY,
+    prod_name    TEXT   NOT NULL,
+    prod_tr_name TEXT DEFAULT '',
+    prod_desc1   TEXT DEFAULT '',
+    prod_desc2   TEXT DEFAULT '',
+    prod_desc3   TEXT DEFAULT '',
+    prod_logo    TEXT DEFAULT ''
 );
 
 CREATE TABLE stores
@@ -32,9 +33,9 @@ CREATE TABLE products_stores
     PRIMARY KEY (prod_id, store_id)
 );
 
-INSERT INTO products (prod_name, prod_desc1) VALUES ('Асперин', 'Асперин: параметры');
-INSERT INTO products (prod_name, prod_desc1) VALUES ('Панадол', 'Панадол: параметры');
-INSERT INTO products (prod_name, prod_desc1) VALUES ('Парацетамол', 'Парацетамол: параметры');
+INSERT INTO products (prod_name, prod_tr_name, prod_desc1) VALUES ('Асперин', 'Asperin', 'Асперин: параметры');
+INSERT INTO products (prod_name, prod_tr_name, prod_desc1) VALUES ('Панадол', 'Panadol', 'Панадол: параметры');
+INSERT INTO products (prod_name, prod_tr_name, prod_desc1) VALUES ('Парацетамол', 'Paracetamol', 'Парацетамол: параметры');
 
 INSERT INTO stores (store_name, store_address, store_email, store_phone, store_latitude, store_longitude) 
 VALUES ('Ригла', 'Гончарный пр., 6, стр. 1, Москва', 'info@rigla.ru', '8 (800) 777-03-03', 55.739399, 37.649848);

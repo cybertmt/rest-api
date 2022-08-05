@@ -28,11 +28,11 @@ func New(constr string) (*Storage, error) {
 // AddProduct добавляет продукт и проверяет, если продукт с таким name уже существует.
 func (s *Storage) AddProduct(p storage.ProductItem) error {
 	rows, err := s.db.Query(context.Background(), `
-		INSERT INTO products (prod_name, prod_desc1, prod_desc2, prod_desc3, prod_logo)
+		INSERT INTO products (prod_name, prod_tr_name, prod_desc1, prod_desc2, prod_desc3, prod_logo)
        	SELECT $1, $2, $3, $4, $5
        	WHERE NOT EXISTS (SELECT 1 FROM products WHERE prod_name=$1);
 	`,
-		p.Prod_name, p.Prod_desc1, p.Prod_desc2, p.Prod_desc3, p.Prod_logo,
+		p.Prod_name, p.Prod_tr_name, p.Prod_desc1, p.Prod_desc2, p.Prod_desc3, p.Prod_logo,
 	)
 	if err != nil {
 		return err
@@ -87,6 +87,7 @@ func (s *Storage) Products() ([]storage.ProductItem, error) {
 		err = rows.Scan(
 			&t.Prod_id,
 			&t.Prod_name,
+			&t.Prod_tr_name,
 			&t.Prod_desc1,
 			&t.Prod_desc2,
 			&t.Prod_desc3,
@@ -104,11 +105,13 @@ func (s *Storage) Products() ([]storage.ProductItem, error) {
 // SearchSortedProducts возвращает продукты, отсортированные по паттерну имени.
 func (s *Storage) SearchSortedProducts(p storage.ProductItem) ([]storage.ProductItem, error) {
 	rows, err := s.db.Query(context.Background(), `
-		SELECT 
-			*
-		FROM products
+	(SELECT *FROM products
 		WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
-		ORDER BY position(lower($1) in lower(prod_name)), prod_name;
+		ORDER BY position(lower($1) in lower(prod_name)), prod_name)
+        UNION ALL
+        (SELECT * FROM products
+		WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
+		ORDER BY position(lower($1) in lower(prod_tr_name)), prod_tr_name);
 	`,
 		p.Prod_name,
 	)
@@ -121,6 +124,7 @@ func (s *Storage) SearchSortedProducts(p storage.ProductItem) ([]storage.Product
 		err = rows.Scan(
 			&t.Prod_id,
 			&t.Prod_name,
+			&t.Prod_tr_name,
 			&t.Prod_desc1,
 			&t.Prod_desc2,
 			&t.Prod_desc3,

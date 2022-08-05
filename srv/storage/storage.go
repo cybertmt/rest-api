@@ -2,18 +2,20 @@ package storage
 
 // ProductItem - продукт.
 type ProductItem struct {
-	Prod_id    int    `json:"prod_id"`
-	Prod_name  string `json:"prod_name"`
-	Prod_desc1 string `json:"prod_desc1"`
-	Prod_desc2 string `json:"prod_desc2"`
-	Prod_desc3 string `json:"prod_desc3"`
-	Prod_logo  string `json:"prod_logo"`
+	Prod_id      int    `json:"prod_id"`
+	Prod_name    string `json:"prod_name"`
+	Prod_tr_name string `json:"prod_tr_name"`
+	Prod_desc1   string `json:"prod_desc1"`
+	Prod_desc2   string `json:"prod_desc2"`
+	Prod_desc3   string `json:"prod_desc3"`
+	Prod_logo    string `json:"prod_logo"`
 }
 
 // StoreItem - магазин.
 type StoreItem struct {
 	Store_id        int     `json:"store_id"`
 	Store_name      string  `json:"store_name"`
+	Store_tr_name   string  `json:"store_tr_name"`
 	Store_address   string  `json:"store_address"`
 	Store_phone     string  `json:"store_phone"`
 	Store_email     string  `json:"store_email"`
