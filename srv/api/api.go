@@ -160,7 +160,7 @@ func (api *API) DeleteAllProductsHandler(w http.ResponseWriter, r *http.Request)
 
 // SearchSortedProductsHandler получение всех продуктов по substring.
 func (api *API) SearchSortedProductsHandler(w http.ResponseWriter, r *http.Request) {
-	var p storage.ProductItem
+	var p storage.SearchItem
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

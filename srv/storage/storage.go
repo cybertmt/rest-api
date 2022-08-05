@@ -45,20 +45,26 @@ type PriceListItem struct {
 	Price           float64 `json:"price"`
 }
 
+// SearchList - цена на товар в магазине.
+type SearchItem struct {
+	Prod_name string  `json:"prod_name"`
+	Price     float64 `json:"price"`
+}
+
 // RestInterface задаёт новый контракт на работу с БД Products Stores.
 type RestInterface interface {
-	Products() ([]ProductItem, error)                             // получение всех продуктов
-	AddProduct(prod ProductItem) error                            // создание новой записи продукта
-	DeleteProduct(prod ProductItem) error                         // удаление продукта по ID
-	DeleteAllProducts() error                                     // удаление всех продуктов, очистка таблицы
-	SearchSortedProducts(prod ProductItem) ([]ProductItem, error) // выдача продукта для поиска
-	Stores() ([]StoreItem, error)                                 // получение всех магазинов
-	AddStore(store StoreItem) error                               // создание новой записи магазина
-	DeleteStore(store StoreItem) error                            // удаление магазина по ID
-	DeleteAllStores() error                                       // удаление всех магазинов, очистка таблицы
-	AddUpdatePrice(price PriceItem) error                         // добавление или обновление цены
-	DeletePrice(price PriceItem) error                            // удаление цены по ID магазина и продукта
-	DeleteAllPrices() error                                       // удаление всех цен, очистка таблицы
-	PriceList() ([]PriceListItem, error)                          // получение всех цен
-	ProductPrice(price PriceListItem) ([]PriceListItem, error)    // получение всех цен по названию продукта
+	Products() ([]ProductItem, error)                          // получение всех продуктов
+	AddProduct(prod ProductItem) error                         // создание новой записи продукта
+	DeleteProduct(prod ProductItem) error                      // удаление продукта по ID
+	DeleteAllProducts() error                                  // удаление всех продуктов, очистка таблицы
+	SearchSortedProducts(sr SearchItem) ([]SearchItem, error)  // выдача продукта для поиска
+	Stores() ([]StoreItem, error)                              // получение всех магазинов
+	AddStore(store StoreItem) error                            // создание новой записи магазина
+	DeleteStore(store StoreItem) error                         // удаление магазина по ID
+	DeleteAllStores() error                                    // удаление всех магазинов, очистка таблицы
+	AddUpdatePrice(price PriceItem) error                      // добавление или обновление цены
+	DeletePrice(price PriceItem) error                         // удаление цены по ID магазина и продукта
+	DeleteAllPrices() error                                    // удаление всех цен, очистка таблицы
+	PriceList() ([]PriceListItem, error)                       // получение всех цен
+	ProductPrice(price PriceListItem) ([]PriceListItem, error) // получение всех цен по названию продукта
 }

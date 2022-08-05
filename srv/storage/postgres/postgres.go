@@ -103,32 +103,33 @@ func (s *Storage) Products() ([]storage.ProductItem, error) {
 }
 
 // SearchSortedProducts возвращает продукты, отсортированные по паттерну имени.
-func (s *Storage) SearchSortedProducts(p storage.ProductItem) ([]storage.ProductItem, error) {
+func (s *Storage) SearchSortedProducts(pr storage.SearchItem) ([]storage.SearchItem, error) {
 	rows, err := s.db.Query(context.Background(), `
-	(SELECT *FROM products
-		WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
-		ORDER BY position(lower($1) in lower(prod_name)), prod_name)
-        UNION ALL
-        (SELECT * FROM products
-		WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
-		ORDER BY position(lower($1) in lower(prod_tr_name)), prod_tr_name);
+		(SELECT prod_name, MIN(price )
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
+			GROUP BY prod_name
+			ORDER BY position(lower($1) in lower(prod_name)), 1)
+        	UNION ALL
+		(SELECT prod_tr_name, MIN(price )
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
+			GROUP BY prod_tr_name
+			ORDER BY position(lower($1) in lower(prod_tr_name)), 1);
 	`,
-		p.Prod_name,
+		pr.Prod_name,
 	)
 	if err != nil {
 		return nil, err
 	}
-	var products []storage.ProductItem
+	var products []storage.SearchItem
 	for rows.Next() {
-		var t storage.ProductItem
+		var t storage.SearchItem
 		err = rows.Scan(
-			&t.Prod_id,
 			&t.Prod_name,
-			&t.Prod_tr_name,
-			&t.Prod_desc1,
-			&t.Prod_desc2,
-			&t.Prod_desc3,
-			&t.Prod_logo,
+			&t.Price,
 		)
 		if err != nil {
 			return nil, err
