@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	iuliia "github.com/mehanizm/iuliia-go"
 )
 
 const logfile = "/var/log/restapi.log"
@@ -120,6 +121,9 @@ func (api *API) AddProductHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if len(p.Prod_tr_name) == 0 {
+		p.Prod_tr_name = iuliia.Gost_7034.Translate(p.Prod_name)
 	}
 	err = api.db.AddProduct(p)
 	if err != nil {

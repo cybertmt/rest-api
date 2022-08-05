@@ -68,6 +68,7 @@ require (
 	github.com/labbsr0x/goh v1.0.1 // indirect
 	github.com/linode/linodego v0.24.2 // indirect
 	github.com/liquidweb/liquidweb-go v1.6.1 // indirect
+	github.com/mehanizm/iuliia-go v1.0.2
 	github.com/miekg/dns v1.1.35 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect

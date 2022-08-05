@@ -105,18 +105,18 @@ func (s *Storage) Products() ([]storage.ProductItem, error) {
 // SearchSortedProducts возвращает продукты, отсортированные по паттерну имени.
 func (s *Storage) SearchSortedProducts(pr storage.SearchItem) ([]storage.SearchItem, error) {
 	rows, err := s.db.Query(context.Background(), `
-		(SELECT prod_name, MIN(price )
+		(SELECT prod_name, MIN(price)
 			FROM products
 			INNER JOIN products_stores USING(prod_id)
 			WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
 			GROUP BY prod_name
 			ORDER BY position(lower($1) in lower(prod_name)), 1)
         	UNION ALL
-		(SELECT prod_tr_name, MIN(price )
+		(SELECT prod_name, MIN(price)
 			FROM products
 			INNER JOIN products_stores USING(prod_id)
 			WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
-			GROUP BY prod_tr_name
+			GROUP BY prod_name, prod_tr_name
 			ORDER BY position(lower($1) in lower(prod_tr_name)), 1);
 	`,
 		pr.Prod_name,
