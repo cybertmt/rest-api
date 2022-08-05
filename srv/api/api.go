@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	c "restapisrv/srv/constants"
+	c "restapisrv/srv/constants" // uncomment constant.go file
 	"restapisrv/srv/storage"
 	"time"
 
