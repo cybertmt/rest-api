@@ -353,7 +353,7 @@ func (s *Storage) SignUp(user storage.Credentials) error {
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
+	rows.Close()
 	return rows.Err()
 }
 
