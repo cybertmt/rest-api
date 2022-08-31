@@ -11,6 +11,7 @@ import (
 	"os"
 	c "restapisrv/srv/constants" // uncomment constant.go file
 	"restapisrv/srv/storage"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -54,7 +55,7 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/productprice", api.ProductPriceHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signup", api.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
-	//api.router.Use(api.Logger)
+	api.router.Use(api.Logger)
 }
 
 // Router получение маршрутизатора запросов.
@@ -346,8 +347,14 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = string(hashedPassword)
 
-	if err = api.db.SignUp(user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	err = api.db.SignUp(user)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
+		// If there is an issue with the database, return a 500 error
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
