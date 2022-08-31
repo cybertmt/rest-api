@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	iuliia "github.com/mehanizm/iuliia-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //const logfile = "/var/log/restapi.log"
@@ -50,7 +52,9 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/clearprices", api.DeleteAllPricesHandler).Methods(http.MethodDelete, http.MethodOptions)
 	api.router.HandleFunc("/pricelist", api.PriceListHandler).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/productprice", api.ProductPriceHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.Use(api.Logger)
+	api.router.HandleFunc("/signup", api.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
+	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
+	//api.router.Use(api.Logger)
 }
 
 // Router получение маршрутизатора запросов.
@@ -325,4 +329,52 @@ func (api *API) ProductPriceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(bytes)
+}
+
+// SignUpHandler добавление нового пользователя.
+func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
+	var user storage.Credentials
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user.Password = string(hashedPassword)
+
+	if err = api.db.SignUp(user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// SignInHandler вход пользователя.
+func (api *API) SignInHandler(w http.ResponseWriter, r *http.Request) {
+	var user storage.Credentials
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	result, err := api.db.SignIn(user)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		// If there is an issue with the database, return a 500 error
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password)); err != nil {
+		// If the two passwords don't match, return a 401 status
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

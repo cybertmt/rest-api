@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS products_stores;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS stores;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE products
 (
@@ -31,6 +32,10 @@ CREATE TABLE products_stores
     store_id   INT CHECK (store_id > 0) REFERENCES stores ON DELETE CASCADE,
     price NUMERIC CHECK (price >= 0),
     PRIMARY KEY (prod_id, store_id)
+);
+CREATE TABLE users (
+  username  TEXT    PRIMARY KEY    NOT NULL,
+  password  TEXT    NOT NULL
 );
 
 INSERT INTO products (prod_name, prod_tr_name, prod_desc1) VALUES ('Асперин', 'Asperin', 'Асперин: параметры');
@@ -64,3 +69,10 @@ INSERT INTO products_stores (prod_id, store_id, price)
 VALUES (3, 2, 45.30);
 INSERT INTO products_stores (prod_id, store_id, price)
 VALUES (3, 3, 39.00);
+
+-- INSERT INTO users (username, password)
+-- VALUES ('user1@yax.ru','user1password');
+-- INSERT INTO users (username, password)
+-- VALUES ('user2@yax.ru','user2password');
+-- INSERT INTO users (username, password)
+-- VALUES ('user3@yax.ru','user3password');

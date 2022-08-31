@@ -51,6 +51,12 @@ type SearchItem struct {
 	Price     float64 `json:"price"`
 }
 
+// Credentials - учетная запись пользователя.
+type Credentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // RestInterface задаёт новый контракт на работу с БД Products Stores.
 type RestInterface interface {
 	Products() ([]ProductItem, error)                          // получение всех продуктов
@@ -67,4 +73,6 @@ type RestInterface interface {
 	DeleteAllPrices() error                                    // удаление всех цен, очистка таблицы
 	PriceList() ([]PriceListItem, error)                       // получение всех цен
 	ProductPrice(price PriceListItem) ([]PriceListItem, error) // получение всех цен по названию продукта
+	SignUp(user Credentials) error                             // добавление нового пользователя
+	SignIn(user Credentials) (Credentials, error)              // вход пользователя
 }
