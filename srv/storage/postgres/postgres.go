@@ -340,3 +340,43 @@ func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListIte
 	}
 	return prices, rows.Err()
 }
+
+// Пользователи.
+// SignUp добавление нового пользователя.
+func (s *Storage) SignUp(user storage.Credentials) error {
+	rows, err := s.db.Query(context.Background(), `
+		INSERT INTO users (username, password)
+		VALUES ($1,$2)
+	`,
+		user.Username, user.Password,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	return rows.Err()
+}
+
+// SignIn вход пользователя.
+func (s *Storage) SignIn(user storage.Credentials) (storage.Credentials, error) {
+	rows, err := s.db.Query(context.Background(), `
+		SELECT * from users
+		WHERE users.username = $1;
+	`,
+		user.Username,
+	)
+	if err != nil {
+		return user, err
+	}
+	var u storage.Credentials
+	for rows.Next() {
+		err = rows.Scan(
+			&u.Username,
+			&u.Password,
+		)
+		if err != nil {
+			return user, err
+		}
+	}
+	return u, rows.Err()
+}

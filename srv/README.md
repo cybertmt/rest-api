@@ -74,3 +74,12 @@ curl https://cybertmtx.crabdance.com/pricelist
 ```
 curl -X "POST" -d '{"prod_name":"Панадол"}' "https://cybertmtx.crabdance.com/productprice"
 ```
+**SignUp/Add user**
+```
+curl -X "POST" -d '{"username":"user1@yax.ru","password":"user1password"}' "https://cybertmtx.crabdance.com/signup"
+```
+**SignIn/Login user**
+```
+curl -X "POST" -d '{"username":"user1@yax.ru","password":"user1password"}' "https://cybertmtx.crabdance.com/signin"
+curl -X "POST" -d '{"username":"user1@yax.ru","password":"user1passwo"}' "https://cybertmtx.crabdance.com/signin"
+```
