@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"restapisrv/api"
-	c "restapisrv/constants" // uncomment constant.go file
+	c "restapisrv/constants" // uncomment and rename to constant.go file
 	"restapisrv/storage"
 	"restapisrv/storage/postgres"
 	"time"
