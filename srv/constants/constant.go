@@ -11,4 +11,5 @@ package constants
 // 	CertDir = "CerDir"
 // 	Email   = "my@email.ru"
 // 	Logfile = "/var/log/rest.log"
+// 	EmailFrom = "youremail@gmail.com"
 // )

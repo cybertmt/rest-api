@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"restapisrv/srv/api"
-	c "restapisrv/srv/constants" // uncomment constant.go file
-	"restapisrv/srv/storage"
-	"restapisrv/srv/storage/postgres"
+	"restapisrv/api"
+	c "restapisrv/constants" // uncomment constant.go file
+	"restapisrv/storage"
+	"restapisrv/storage/postgres"
 	"time"
 
 	"github.com/foomo/simplecert"

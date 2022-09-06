@@ -2,7 +2,8 @@ package postgres
 
 import (
 	"context"
-	"restapisrv/srv/storage"
+	"log"
+	"restapisrv/storage"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -345,10 +346,10 @@ func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListIte
 // SignUp добавление нового пользователя.
 func (s *Storage) SignUp(user storage.Credentials) error {
 	rows, err := s.db.Query(context.Background(), `
-		INSERT INTO users (username, password)
+		INSERT INTO users (useremail, password)
 		VALUES ($1,$2)
 	`,
-		user.Username, user.Password,
+		user.Useremail, user.Password,
 	)
 	if err != nil {
 		return err
@@ -358,25 +359,94 @@ func (s *Storage) SignUp(user storage.Credentials) error {
 }
 
 // SignIn вход пользователя.
-func (s *Storage) SignIn(user storage.Credentials) (storage.Credentials, error) {
+func (s *Storage) SignIn(user storage.CredentialsShort) (storage.Credentials, error) {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT * from users
-		WHERE users.username = $1;
+		WHERE users.useremail = $1;
 	`,
-		user.Username,
+		user.Useremail,
+	)
+	var u storage.Credentials
+	if err != nil {
+		u.Useremail = user.Useremail
+		return u, err
+	}
+
+	for rows.Next() {
+		err = rows.Scan(
+			&u.Useremail,
+			&u.Password,
+			&u.Userstatus,
+			&u.Confirmstring,
+			&u.Usernickname,
+			&u.Lastlogindate,
+			&u.Lastlogindevice,
+		)
+		if err != nil {
+			u.Useremail = user.Useremail
+			return u, err
+		}
+
+	}
+	err = rows.Err()
+	log.Print("No Rows err is", err)
+	return u, err
+}
+
+// UserExist существует ли пользователь.
+func (s *Storage) UserExist(user storage.Credentials) error {
+	rows, err := s.db.Query(context.Background(), `
+		SELECT useremail from users
+		WHERE useremail = $1;
+	`,
+		user.Useremail,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows.Close()
+	return rows.Err()
+}
+
+// SetConfirmString добавление строки подтверждения почты.
+func (s *Storage) SetConfirmString(user storage.CredentialsConfirm) error {
+	rows, err := s.db.Query(context.Background(), `
+		UPDATE users
+		SET confirmstring = $2 
+		WHERE useremail = $1;
+	`,
+		user.Useremail, user.Confirmstring,
+	)
+	if err != nil {
+		return err
+	}
+	rows.Close()
+	return rows.Err()
+}
+
+// ConfirmStringAndStatus получение строки подтверждения почты и статуса.
+func (s *Storage) ConfirmStringAndStatus(user storage.CredentialsConfirm) (storage.CredentialsConfirm, error) {
+	rows, err := s.db.Query(context.Background(), `
+		SELECT confirmstring, userstatus from users
+		WHERE users.confirmstring = $1;
+	`,
+		user.Useremail,
 	)
 	if err != nil {
 		return user, err
 	}
-	var u storage.Credentials
+
+	var u storage.CredentialsConfirm
 	for rows.Next() {
 		err = rows.Scan(
-			&u.Username,
-			&u.Password,
+			&u.Confirmstring,
+			&u.Userstatus,
 		)
 		if err != nil {
 			return user, err
 		}
+
 	}
 	return u, rows.Err()
 }
