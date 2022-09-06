@@ -106,7 +106,7 @@ type RestInterface interface {
 	ProductPrice(price PriceListItem) ([]PriceListItem, error)                  // получение всех цен по названию продукта
 	SignUp(user Credentials) error                                              // добавление нового пользователя
 	SignIn(user CredentialsShort) (Credentials, error)                          // вход пользователя
-	UserExist(user Credentials) error                                           // существует ли пользователь
+	UserExist(user CredentialsUserEmail) error                                  // существует ли пользователь
 	SetConfirmString(user CredentialsConfirm) error                             // добавление строки подтверждения почты
 	ConfirmStringAndStatus(user CredentialsConfirm) (CredentialsConfirm, error) // получение строки подтверждения почты и статуса
 }

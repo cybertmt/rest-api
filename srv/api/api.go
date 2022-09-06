@@ -56,7 +56,7 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/productprice", api.ProductPriceHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signup", api.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.HandleFunc("/emailconfirm/{confirmString}", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/emailconfirm/{confirmString:.*}", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
 	//api.router.Use(api.Logger)
 }
 
@@ -343,12 +343,6 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// err = api.db.UserExist(user)
-	// if err != sql.ErrNoRows {
-	// 	log.Print("Err is ", err)
-	// 	w.WriteHeader(http.StatusConflict)
-	// 	return
-	// }
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
 	if err != nil {
@@ -370,6 +364,16 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	timeNow := time.Now().String()
 	confirmLink, err := bcrypt.GenerateFromPassword([]byte(user.Useremail+timeNow), 8)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var userConfirm storage.CredentialsConfirm
+
+	userConfirm.Useremail = user.Useremail
+	userConfirm.Confirmstring = string(confirmLink)
+	err = api.db.SetConfirmString(userConfirm)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -452,6 +456,7 @@ func (api *API) EmailConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	reply := params["confirmString"]
 	log.Print("reply is ", reply)
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(reply))
 }

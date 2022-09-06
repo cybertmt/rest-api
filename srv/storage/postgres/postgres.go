@@ -401,7 +401,7 @@ func (s *Storage) SignIn(user storage.CredentialsShort) (storage.Credentials, er
 }
 
 // UserExist существует ли пользователь.
-func (s *Storage) UserExist(user storage.Credentials) error {
+func (s *Storage) UserExist(user storage.CredentialsUserEmail) error {
 	rows, err := s.db.Query(context.Background(), `
 		SELECT useremail from users
 		WHERE useremail = $1;
@@ -410,6 +410,23 @@ func (s *Storage) UserExist(user storage.Credentials) error {
 	)
 	if err != nil {
 		return err
+	}
+	rowNum := 0
+	var u storage.CredentialsShort
+	for rows.Next() {
+		err = rows.Scan(
+			&u.Useremail,
+		)
+		if err != nil {
+			u.Useremail = user.Useremail
+			return err
+		}
+		rowNum++
+
+	}
+	if rowNum < 1 {
+		u.Useremail = user.Useremail
+		return storage.ErrUserNotFound
 	}
 
 	rows.Close()
