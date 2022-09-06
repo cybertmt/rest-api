@@ -1,5 +1,9 @@
 package storage
 
+import "errors"
+
+var ErrUserNotFound = errors.New("user not found")
+
 // ProductItem - продукт.
 type ProductItem struct {
 	Prod_id      int    `json:"prod_id"`

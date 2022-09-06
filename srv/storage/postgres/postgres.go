@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"log"
 	"restapisrv/storage"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -366,11 +365,13 @@ func (s *Storage) SignIn(user storage.CredentialsShort) (storage.Credentials, er
 	`,
 		user.Useremail,
 	)
+
 	var u storage.Credentials
 	if err != nil {
 		u.Useremail = user.Useremail
 		return u, err
 	}
+	rowNum := 0
 
 	for rows.Next() {
 		err = rows.Scan(
@@ -386,10 +387,16 @@ func (s *Storage) SignIn(user storage.CredentialsShort) (storage.Credentials, er
 			u.Useremail = user.Useremail
 			return u, err
 		}
+		rowNum++
 
 	}
+
+	if rowNum < 1 {
+		u.Useremail = user.Useremail
+		return u, storage.ErrUserNotFound
+	}
+	rows.Close()
 	err = rows.Err()
-	log.Print("No Rows err is", err)
 	return u, err
 }
 

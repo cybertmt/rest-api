@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -404,19 +403,25 @@ func (api *API) SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	result, err := api.db.SignIn(user)
-	log.Print(result)
+	var fixedResult storage.CredentialsFixed
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == storage.ErrUserNotFound {
+			fixedResult.Useremail = user.Useremail + " not found"
+			bytes, err := json.Marshal(fixedResult)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			w.WriteHeader(http.StatusUnauthorized)
+			w.Write(bytes)
 			return
 		}
-		log.Print(err)
 		// If there is an issue with the database, return a 500 error
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var fixedResult storage.CredentialsFixed
+
 	err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password))
 	// If the two passwords don't match, return a 401 status
 	if err != nil {
