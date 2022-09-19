@@ -3,6 +3,8 @@ package storage
 import "errors"
 
 var ErrUserNotFound = errors.New("user not found")
+var ErrConfirmStringNotFound = errors.New("invalid confirmstring")
+var ErrAlreadyConfirmed = errors.New("already confirmed")
 
 // ProductItem - продукт.
 type ProductItem struct {
@@ -59,7 +61,7 @@ type SearchItem struct {
 type Credentials struct {
 	Useremail       string `json:"useremail"`
 	Password        string `json:"password"`
-	Userstatus      int    `json:"confirmed"`
+	Userstatus      int    `json:"status"`
 	Confirmstring   string `json:"confirmedstring"`
 	Usernickname    string `json:"usernickname"`
 	Lastlogindate   string `json:"lastlogindate"`
@@ -69,7 +71,7 @@ type Credentials struct {
 // CredentialsFixed - учетная запись пользователя на SignIn.
 type CredentialsFixed struct {
 	Useremail    string `json:"useremail"`
-	Userstatus   int    `json:"confirmed"`
+	Userstatus   int    `json:"status"`
 	Usernickname string `json:"usernickname"`
 }
 
@@ -81,11 +83,12 @@ type CredentialsShort struct {
 type CredentialsConfirm struct {
 	Useremail     string `json:"useremail"`
 	Confirmstring string `json:"confirmstring"`
-	Userstatus    int    `json:"userstatus"`
+	Userstatus    int    `json:"status"`
 }
 
-type CredentialsUserEmail struct {
-	Useremail string `json:"useremail"`
+type CredentialsUserEmailStatus struct {
+	Useremail  string `json:"useremail"`
+	Userstatus int    `json:"status"`
 }
 
 // RestInterface задаёт новый контракт на работу с БД Products Stores.
@@ -106,7 +109,8 @@ type RestInterface interface {
 	ProductPrice(price PriceListItem) ([]PriceListItem, error)                  // получение всех цен по названию продукта
 	SignUp(user Credentials) error                                              // добавление нового пользователя
 	SignIn(user CredentialsShort) (Credentials, error)                          // вход пользователя
-	UserExist(user CredentialsUserEmail) error                                  // существует ли пользователь
+	UserExistEmailStatus(user CredentialsUserEmailStatus) error                 // существует ли пользователь и вернуть статус
 	SetConfirmString(user CredentialsConfirm) error                             // добавление строки подтверждения почты
 	ConfirmStringAndStatus(user CredentialsConfirm) (CredentialsConfirm, error) // получение строки подтверждения почты и статуса
+	//SetUserStatus(user CredentialsConfirm) error                                // изменение статуса пользователя по useremail
 }

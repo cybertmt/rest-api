@@ -1,0 +1,13 @@
+.main {
+    color: red;
+}
+
+.center {
+    margin: auto;
+    margin-top: 10%;
+    width: 40%;
+    background-color: #cfc;
+    padding: 10px;
+    border: 2px solid green; 
+    text-align: center;
+}

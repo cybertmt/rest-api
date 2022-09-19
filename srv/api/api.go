@@ -9,9 +9,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	c "restapisrv/constants" // uncomment and rename constant.go file
 	"restapisrv/sendemail"
 	"restapisrv/storage"
+
+	web "restapisrv/webpages"
 	"strings"
 	"time"
 
@@ -20,7 +23,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//const logfile = "/var/log/restapi.log"
+//regexp
+var reg = regexp.MustCompile(`[^A-Za-z0-9]`)
 
 // API программный интерфейс сервера.
 type API struct {
@@ -40,6 +44,7 @@ func New(db storage.RestInterface) *API {
 
 // endpoints регистрация обработчиков API.
 func (api *API) endpoints() {
+
 	api.router.HandleFunc("/products", api.ProductsHandler).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/products", api.AddProductHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/products", api.DeleteProductHandler).Methods(http.MethodDelete, http.MethodOptions)
@@ -56,8 +61,20 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/productprice", api.ProductPriceHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signup", api.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.HandleFunc("/emailconfirm/{confirmString:.*}", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/emailconfirm", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
+
+	//api.router.HandleFunc("/", api.PageHandler).Methods(http.MethodGet, http.MethodOptions)
 	//api.router.Use(api.Logger)
+	fs := http.FileServer(http.Dir("./webpages"))
+	//cssHandler := http.FileServer(http.Dir("./webpages/css"))
+	//imagesHandler := http.FileServer(http.Dir("./webpages/images"))
+
+	api.router.Handle("/", fs)
+	//api.router.PathPrefix("/emailconfirm/").Handler(http.StripPrefix("/emailconfirm/", fs))
+	api.router.PathPrefix("/").Handler(fs)
+	//api.router.PathPrefix("/images/").Handler(http.StripPrefix("/images/", fs))
+	//api.router.PathPrefix("/css/").Handler(fs)
+	//api.router.PathPrefix("/emailconfirm/css/").Handler(http.StripPrefix("/emailconfirm/", fs))
 }
 
 // Router получение маршрутизатора запросов.
@@ -344,7 +361,7 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password+user.Useremail), 8)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -370,9 +387,11 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userConfirm storage.CredentialsConfirm
-
+	strConfirmlink := string(confirmLink)
+	strConfirmlink = reg.ReplaceAllString(strConfirmlink, "x")
+	log.Print("ConfirmString is ", strConfirmlink)
 	userConfirm.Useremail = user.Useremail
-	userConfirm.Confirmstring = string(confirmLink)
+	userConfirm.Confirmstring = strConfirmlink
 	err = api.db.SetConfirmString(userConfirm)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -388,7 +407,7 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	b := "Здравствуйте!\n\nДля получения уведомлений об активации, " +
 		"остановке и необходимости продления услуг, необходимо подтвердить адрес электронной почты. " +
 		"Для подтверждения адреса, пожалуйста, перейдите по ссылке: \n" +
-		c.FullURL + "/emailconfirm/" + string(confirmLink)
+		c.FullURL + "/emailconfirm?k=" + string(strConfirmlink)
 
 	err = sendemail.Sendemail(f, pass, t, b, h, p, s)
 	if err != nil {
@@ -417,6 +436,7 @@ func (api *API) SignInHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			log.Print("!!Not found")
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write(bytes)
 			return
@@ -425,8 +445,20 @@ func (api *API) SignInHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// if result.Userstatus < 1 {
+	// 	fixedResult.Useremail = user.Useremail + " not confirmed"
+	// 	bytes, err := json.Marshal(fixedResult)
+	// 	if err != nil {
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	log.Print("!!Not confirmed")
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	w.Write(bytes)
+	// 	return
+	// }
 
-	err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password+user.Useremail))
 	// If the two passwords don't match, return a 401 status
 	if err != nil {
 		fixedResult.Useremail = user.Useremail + " is illegal"
@@ -435,28 +467,76 @@ func (api *API) SignInHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		log.Print("!!Illigal")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(bytes)
 		return
 	}
 	fixedResult.Useremail = user.Useremail
 	fixedResult.Usernickname = result.Usernickname
-	fixedResult.Userstatus = result.Userstatus + 100
+	fixedResult.Userstatus = result.Userstatus
 	bytes, err := json.Marshal(fixedResult)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	log.Print("!! loggedIned", user)
 	w.WriteHeader(http.StatusOK)
 	w.Write(bytes)
 }
 
 // EmailConfirmHandler подтверждение почты.
 func (api *API) EmailConfirmHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	reply := params["confirmString"]
-	log.Print("reply is ", reply)
+	params := r.URL.Query()
+	var user storage.CredentialsConfirm
+	user.Confirmstring = params.Get("k")
+
+	result, err := api.db.ConfirmStringAndStatus(user)
+	data := map[string]string{
+		"useremail": result.Useremail,
+		"reply":     "already confirmed",
+	}
+	dir := "./webpages/emailconfirm.html"
+	if err != nil {
+		if err == storage.ErrAlreadyConfirmed {
+			w.WriteHeader(http.StatusOK)
+			err = web.SendWebPage(w, dir, data)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+
+			return
+		}
+		if err == storage.ErrConfirmStringNotFound {
+			data["reply"] = "got invalid confirm string"
+			w.WriteHeader(http.StatusUnauthorized)
+			err = web.SendWebPage(w, dir, data)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			return
+		}
+		// If there is an issue with the database, return a 500 error
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	data["reply"] = "confirmed"
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(reply))
+	err = web.SendWebPage(w, dir, data)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	//w.Write([]byte("Email " + result.Useremail + " confirmed"))
 }
+
+// // EmailConfirmHandler подтверждение почты.
+// func (api *API) PageHandler(w http.ResponseWriter, r *http.Request) {
+
+// 		// If there is an issue with the database, return a 500 error
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		return
+// }

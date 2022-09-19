@@ -396,14 +396,13 @@ func (s *Storage) SignIn(user storage.CredentialsShort) (storage.Credentials, er
 		return u, storage.ErrUserNotFound
 	}
 	rows.Close()
-	err = rows.Err()
-	return u, err
+	return u, rows.Err()
 }
 
-// UserExist существует ли пользователь.
-func (s *Storage) UserExist(user storage.CredentialsUserEmail) error {
+// UserExist существует ли пользователь, вернуть почту и статус.
+func (s *Storage) UserExistEmailStatus(user storage.CredentialsUserEmailStatus) error {
 	rows, err := s.db.Query(context.Background(), `
-		SELECT useremail from users
+		SELECT useremail, userstatus from users
 		WHERE useremail = $1;
 	`,
 		user.Useremail,
@@ -412,10 +411,11 @@ func (s *Storage) UserExist(user storage.CredentialsUserEmail) error {
 		return err
 	}
 	rowNum := 0
-	var u storage.CredentialsShort
+	var u storage.CredentialsUserEmailStatus
 	for rows.Next() {
 		err = rows.Scan(
 			&u.Useremail,
+			&u.Userstatus,
 		)
 		if err != nil {
 			u.Useremail = user.Useremail
@@ -451,26 +451,74 @@ func (s *Storage) SetConfirmString(user storage.CredentialsConfirm) error {
 
 // ConfirmStringAndStatus получение строки подтверждения почты и статуса.
 func (s *Storage) ConfirmStringAndStatus(user storage.CredentialsConfirm) (storage.CredentialsConfirm, error) {
-	rows, err := s.db.Query(context.Background(), `
-		SELECT confirmstring, userstatus from users
+	rows1, err := s.db.Query(context.Background(), `
+		SELECT useremail, userstatus, confirmstring from users
 		WHERE users.confirmstring = $1;
 	`,
-		user.Useremail,
+		user.Confirmstring,
 	)
-	if err != nil {
-		return user, err
-	}
 
 	var u storage.CredentialsConfirm
-	for rows.Next() {
-		err = rows.Scan(
-			&u.Confirmstring,
+	if err != nil {
+		u.Useremail = user.Useremail
+		return u, err
+	}
+	rowNum := 0
+
+	for rows1.Next() {
+		err = rows1.Scan(
+			&u.Useremail,
 			&u.Userstatus,
+			&u.Confirmstring,
 		)
 		if err != nil {
-			return user, err
+			u.Useremail = user.Useremail
+			return u, err
 		}
+		rowNum++
 
 	}
-	return u, rows.Err()
+
+	if u.Userstatus > 0 {
+		return u, storage.ErrAlreadyConfirmed
+	}
+
+	if rowNum < 1 {
+		u.Useremail = user.Useremail
+		return u, storage.ErrConfirmStringNotFound
+	}
+
+	rows2, err := s.db.Query(context.Background(), `
+		UPDATE users
+		SET userstatus = 1 
+		WHERE confirmstring = $1;
+	`,
+		user.Confirmstring,
+	)
+	if err != nil {
+		return u, err
+	}
+
+	rows2.Close()
+
+	return u, rows2.Err()
+}
+
+// SetUserStatus изменение статуса пользователя по useremail.
+func (s *Storage) SetUserStatus(user storage.CredentialsConfirm) error {
+	rows, err := s.db.Query(context.Background(), `
+		UPDATE users
+		SET userstatus = $2 
+		WHERE confirmstring = $1;
+	`,
+		user.Useremail, user.Userstatus,
+	)
+	rows.Close()
+	if err != nil {
+		return err
+	}
+	if rows.CommandTag().RowsAffected() < 1 {
+		return storage.ErrUserNotFound
+	}
+	return rows.Err()
 }

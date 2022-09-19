@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"restapisrv/api"
 	c "restapisrv/constants" // uncomment and rename to constant.go file
 	"restapisrv/storage"
@@ -36,6 +37,15 @@ func main() {
 
 	// создаём объект API и регистрируем обработчики
 	srv.api = api.New(srv.db)
+
+	// Запускаем сервис на порту 80.
+	// Предаём серверу маршрутизатор запросов.
+	go func() {
+		log.Fatal(http.ListenAndServe(":80", srv.api.Router()))
+	}()
+	log.Println("HTTP server started @ :80")
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt)
 
 	var (
 		// the structure that handles reloading the certificate
@@ -103,8 +113,8 @@ func main() {
 	}
 
 	// redirect HTTP to HTTPS
-	log.Println("starting HTTP Listener on Port 80")
-	go http.ListenAndServe(":80", http.HandlerFunc(simplecert.Redirect))
+	// log.Println("starting HTTP Listener on Port 80")
+	// go http.ListenAndServe(":80", http.HandlerFunc(simplecert.Redirect))
 
 	// enable hot reload
 	tlsConf.GetCertificate = certReloader.GetCertificateFunc()
@@ -112,6 +122,8 @@ func main() {
 	// start serving
 	log.Println("will serve at: https://" + cfg.Domains[0])
 	serve(ctx, srv2)
+	<-signalCh
+	log.Println("News HTTP server stopped")
 
 	<-make(chan bool)
 }
