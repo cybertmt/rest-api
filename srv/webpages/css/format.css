@@ -19,10 +19,16 @@
 }
 
 .wrapper, td ,th {
-    width: 30%;
+    width: 100%;
     border: 1px solid;
+    border-color: rgb(126, 126, 126);
+    white-space: nowrap;
 }
 
 .specbutton {
     float: right;
+}
+
+.searchbox {
+    border-color: rgb(195, 195, 195);
 }
