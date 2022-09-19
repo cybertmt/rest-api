@@ -11,3 +11,18 @@
     border: 2px solid green; 
     text-align: center;
 }
+
+.search {
+    width: 70%;
+    padding-top: 5%;
+    margin: auto;
+}
+
+.wrapper, td ,th {
+    width: 30%;
+    border: 1px solid;
+}
+
+.specbutton {
+    float: right;
+}

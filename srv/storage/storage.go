@@ -112,5 +112,6 @@ type RestInterface interface {
 	UserExistEmailStatus(user CredentialsUserEmailStatus) error                 // существует ли пользователь и вернуть статус
 	SetConfirmString(user CredentialsConfirm) error                             // добавление строки подтверждения почты
 	ConfirmStringAndStatus(user CredentialsConfirm) (CredentialsConfirm, error) // получение строки подтверждения почты и статуса
-	//SetUserStatus(user CredentialsConfirm) error                                // изменение статуса пользователя по useremail
+	ShortPriceList() ([]SearchItem, error)                                      // получение всех цен короткая форма
+	//SetUserStatus(user CredentialsConfirm) error                              // изменение статуса пользователя по useremail
 }

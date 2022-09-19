@@ -303,6 +303,35 @@ func (s *Storage) PriceList() ([]storage.PriceListItem, error) {
 	return prices, rows.Err()
 }
 
+// ShortPriceList показывает весь список товаров и минимальных цен.
+func (s *Storage) ShortPriceList() ([]storage.SearchItem, error) {
+	rows, err := s.db.Query(context.Background(), `
+		(SELECT prod_name, MIN(price)
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			GROUP BY prod_name
+			ORDER BY 1)
+	`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var products []storage.SearchItem
+	for rows.Next() {
+		var t storage.SearchItem
+		err = rows.Scan(
+			&t.Prod_name,
+			&t.Price,
+		)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, t)
+
+	}
+	return products, rows.Err()
+}
+
 // ProductPrice получение всех цен по названию прордукта prod_name.
 func (s *Storage) ProductPrice(pr storage.PriceListItem) ([]storage.PriceListItem, error) {
 	rows, err := s.db.Query(context.Background(), `

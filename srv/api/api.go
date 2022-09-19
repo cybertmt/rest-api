@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -62,6 +63,8 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/signup", api.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/emailconfirm", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/search", api.ProductSearchHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/shortpricelist", api.ShortPriceListHandler).Methods(http.MethodGet, http.MethodOptions)
 
 	//api.router.HandleFunc("/", api.PageHandler).Methods(http.MethodGet, http.MethodOptions)
 	//api.router.Use(api.Logger)
@@ -349,6 +352,47 @@ func (api *API) ProductPriceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(bytes)
+}
+
+// ProductSearchHandler получение всех цен по названию прордукта prod_name через ?Query.
+func (api *API) ProductSearchHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	var p storage.SearchItem
+	p.Prod_name = params.Get("p")
+	products, err := api.db.SearchSortedProducts(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// bytes, err := json.Marshal(products)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// w.Write(bytes)
+	dir := "./webpages/search.html"
+	w.Header().Set("Content-Type", "text/html")
+	tmp := template.Must(template.ParseFiles(dir))
+	tmp.Execute(w, products)
+}
+
+// ShortPriceListHandler получение всех цен через ?Query.
+func (api *API) ShortPriceListHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := api.db.ShortPriceList()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// bytes, err := json.Marshal(products)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// w.Write(bytes)
+	dir := "./webpages/search.html"
+	w.Header().Set("Content-Type", "text/html")
+	tmp := template.Must(template.ParseFiles(dir))
+	tmp.Execute(w, products)
 }
 
 // Users.

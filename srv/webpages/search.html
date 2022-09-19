@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="css/format.css">
 
   </head>
-  <body>
   <section class="search">
     <form action="https://cybertmtx.crabdance.com/search" method="get">
       <fieldset> <legend>Название продукта</legend>
@@ -17,6 +16,20 @@
           onclick="location.href='https://cybertmtx.crabdance.com/shortpricelist';">
       </p>
     </form>
+      <div>
+        <table class="wrapper">
+            <thead><td><b>Название</b></td><td><b>Цена</b></td></tr></thead>
+            {{range . }}
+            <tr>
+                <td>{{.Prod_name}}</td>
+                <td>{{.Price}}</td>
+            </tr>
+            {{end}}
+        </table>
+      </div>
   </section>
+
+
+    
   </body>
 </html>
