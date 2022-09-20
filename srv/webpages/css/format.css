@@ -13,8 +13,8 @@
 }
 
 .search {
-    width: 70%;
-    padding-top: 5%;
+    width: 85%;
+    padding-top: 3%;
     margin: auto;
 }
 
@@ -31,4 +31,8 @@
 
 .searchbox {
     border-color: rgb(195, 195, 195);
+}
+
+.searchline {
+    width: 90%;
 }

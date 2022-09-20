@@ -102,44 +102,6 @@ func (s *Storage) Products() ([]storage.ProductItem, error) {
 	return products, rows.Err()
 }
 
-// SearchSortedProducts возвращает продукты, отсортированные по паттерну имени.
-func (s *Storage) SearchSortedProducts(pr storage.SearchItem) ([]storage.SearchItem, error) {
-	rows, err := s.db.Query(context.Background(), `
-		(SELECT prod_name, MIN(price)
-			FROM products
-			INNER JOIN products_stores USING(prod_id)
-			WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
-			GROUP BY prod_name
-			ORDER BY position(lower($1) in lower(prod_name)), 1)
-        	UNION ALL
-		(SELECT prod_name, MIN(price)
-			FROM products
-			INNER JOIN products_stores USING(prod_id)
-			WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
-			GROUP BY prod_name, prod_tr_name
-			ORDER BY position(lower($1) in lower(prod_tr_name)), 1);
-	`,
-		pr.Prod_name,
-	)
-	if err != nil {
-		return nil, err
-	}
-	var products []storage.SearchItem
-	for rows.Next() {
-		var t storage.SearchItem
-		err = rows.Scan(
-			&t.Prod_name,
-			&t.Price,
-		)
-		if err != nil {
-			return nil, err
-		}
-		products = append(products, t)
-
-	}
-	return products, rows.Err()
-}
-
 // Магазины.
 // AddStore добавляет магазин и проверяет, если магазин с таким name и address уже существует.
 func (s *Storage) AddStore(st storage.StoreItem) error {
@@ -265,6 +227,101 @@ func (s *Storage) DeleteAllPrices() error {
 	}
 	defer rows.Close()
 	return rows.Err()
+}
+
+// SearchSortedProducts возвращает продукты, отсортированные по паттерну имени.
+func (s *Storage) SearchSortedProducts(pr storage.SearchItem) ([]storage.SearchItem, error) {
+	rows, err := s.db.Query(context.Background(), `
+		(SELECT prod_name, MIN(price)
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
+			GROUP BY prod_name
+			ORDER BY position(lower($1) in lower(prod_name)), 1)
+        	UNION ALL
+		(SELECT prod_name, MIN(price)
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
+			GROUP BY prod_name, prod_tr_name
+			ORDER BY position(lower($1) in lower(prod_tr_name)), 1);
+	`,
+		pr.Prod_name,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var products []storage.SearchItem
+	for rows.Next() {
+		var t storage.SearchItem
+		err = rows.Scan(
+			&t.Prod_name,
+			&t.Price,
+		)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, t)
+
+	}
+	return products, rows.Err()
+}
+
+// SearchSortedProductsWithStore возвращает продукты, отсортированные по паттерну имени мин цену и магазин.
+func (s *Storage) SearchSortedProductsWithStore(pr storage.PriceListItem) ([]storage.PriceListItem, error) {
+	rows, err := s.db.Query(context.Background(), `
+		(WITH y AS (SELECT prod_id, prod_name, MIN(price) AS price
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			WHERE lower(prod_name) LIKE '%' || lower($1) || '%'
+			GROUP BY prod_id, prod_name
+		)
+		SELECT products.prod_name, prod_logo, store_name, store_address, store_phone, store_email, store_logo, store_latitude, store_longitude, price
+		FROM products
+		INNER JOIN y USING(prod_id) INNER JOIN products_stores  USING(price)
+		INNER JOIN stores USING(store_id)
+		ORDER BY position(lower($1) in lower(products.prod_name)), 1)
+		UNION ALL
+		(WITH y AS (SELECT prod_id, prod_name, MIN(price) AS price
+			FROM products
+			INNER JOIN products_stores USING(prod_id)
+			WHERE lower(prod_tr_name) LIKE '%' || lower($1) || '%'
+			GROUP BY prod_id, prod_name, prod_tr_name
+		)
+		SELECT products.prod_name, prod_logo, store_name, store_address, store_phone, store_email, store_logo, store_latitude, store_longitude, price
+		FROM products
+		INNER JOIN y USING(prod_id) INNER JOIN products_stores  USING(price)
+		INNER JOIN stores USING(store_id)
+		ORDER BY position(lower($1) in lower(prod_tr_name)), 1
+		);
+	`,
+		pr.Prod_name,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var products []storage.PriceListItem
+	for rows.Next() {
+		var t storage.PriceListItem
+		err = rows.Scan(
+			&t.Prod_name,
+			&t.Prod_logo,
+			&t.Store_name,
+			&t.Store_address,
+			&t.Store_phone,
+			&t.Store_email,
+			&t.Store_logo,
+			&t.Store_latitude,
+			&t.Store_longitude,
+			&t.Price,
+		)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, t)
+
+	}
+	return products, rows.Err()
 }
 
 // PriceList показывает весь список цен и координат магазинов.

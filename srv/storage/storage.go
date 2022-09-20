@@ -37,7 +37,7 @@ type PriceItem struct {
 	Price    float64 `json:"price"`
 }
 
-// PriceList - цена на товар в магазине.
+// PriceListItem - цена на товар в магазине.
 type PriceListItem struct {
 	Prod_name       string  `json:"prod_name"`
 	Prod_logo       string  `json:"prod_logo"`
@@ -51,7 +51,7 @@ type PriceListItem struct {
 	Price           float64 `json:"price"`
 }
 
-// SearchList - цена на товар в магазине.
+// SearchItem - цена на товар в магазине.
 type SearchItem struct {
 	Prod_name string  `json:"prod_name"`
 	Price     float64 `json:"price"`
@@ -113,5 +113,6 @@ type RestInterface interface {
 	SetConfirmString(user CredentialsConfirm) error                             // добавление строки подтверждения почты
 	ConfirmStringAndStatus(user CredentialsConfirm) (CredentialsConfirm, error) // получение строки подтверждения почты и статуса
 	ShortPriceList() ([]SearchItem, error)                                      // получение всех цен короткая форма
+	SearchSortedProductsWithStore(sr PriceListItem) ([]PriceListItem, error)    // выдача продукта для поиска с минимальной ценой и названием магазина
 	//SetUserStatus(user CredentialsConfirm) error                              // изменение статуса пользователя по useremail
 }

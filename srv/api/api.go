@@ -64,20 +64,8 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/emailconfirm", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/search", api.ProductSearchHandler).Methods(http.MethodGet, http.MethodOptions)
-	api.router.HandleFunc("/shortpricelist", api.ShortPriceListHandler).Methods(http.MethodGet, http.MethodOptions)
-
-	//api.router.HandleFunc("/", api.PageHandler).Methods(http.MethodGet, http.MethodOptions)
-	//api.router.Use(api.Logger)
-	fs := http.FileServer(http.Dir("./webpages"))
-	//cssHandler := http.FileServer(http.Dir("./webpages/css"))
-	//imagesHandler := http.FileServer(http.Dir("./webpages/images"))
-
-	api.router.Handle("/", fs)
-	//api.router.PathPrefix("/emailconfirm/").Handler(http.StripPrefix("/emailconfirm/", fs))
-	api.router.PathPrefix("/").Handler(fs)
-	//api.router.PathPrefix("/images/").Handler(http.StripPrefix("/images/", fs))
-	//api.router.PathPrefix("/css/").Handler(fs)
-	//api.router.PathPrefix("/emailconfirm/css/").Handler(http.StripPrefix("/emailconfirm/", fs))
+	api.router.HandleFunc("/webpricelist", api.WebPriceListHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webpages"))))
 }
 
 // Router получение маршрутизатора запросов.
@@ -357,9 +345,9 @@ func (api *API) ProductPriceHandler(w http.ResponseWriter, r *http.Request) {
 // ProductSearchHandler получение всех цен по названию прордукта prod_name через ?Query.
 func (api *API) ProductSearchHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
-	var p storage.SearchItem
+	var p storage.PriceListItem
 	p.Prod_name = params.Get("p")
-	products, err := api.db.SearchSortedProducts(p)
+	products, err := api.db.SearchSortedProductsWithStore(p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -370,6 +358,7 @@ func (api *API) ProductSearchHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 	// w.Write(bytes)
+	//log.Print(products)
 	dir := "./webpages/search.html"
 	w.Header().Set("Content-Type", "text/html")
 	tmp := template.Must(template.ParseFiles(dir))
@@ -390,6 +379,25 @@ func (api *API) ShortPriceListHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 	// w.Write(bytes)
 	dir := "./webpages/search.html"
+	w.Header().Set("Content-Type", "text/html")
+	tmp := template.Must(template.ParseFiles(dir))
+	tmp.Execute(w, products)
+}
+
+// WebPriceListHandler получение всех цен через ?Query.
+func (api *API) WebPriceListHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := api.db.PriceList()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// bytes, err := json.Marshal(products)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// w.Write(bytes)
+	dir := "./webpages/pricelist.html"
 	w.Header().Set("Content-Type", "text/html")
 	tmp := template.Must(template.ParseFiles(dir))
 	tmp.Execute(w, products)
