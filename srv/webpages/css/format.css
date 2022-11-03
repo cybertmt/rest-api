@@ -1,0 +1,48 @@
+.main {
+    color: red;
+}
+
+.center {
+    margin: auto;
+    margin-top: 10%;
+    width: 40%;
+    background-color: #cfc;
+    padding: 10px;
+    border: 2px solid green; 
+    text-align: center;
+}
+
+.search {
+    width: 85%;
+    padding-top: 3%;
+    margin: auto;
+}
+
+.wrapper, td ,th {
+    width: 100%;
+    border: 1px solid;
+    border-color: rgb(126, 126, 126);
+    white-space: nowrap;
+}
+
+.specbutton {
+    float: right;
+}
+
+.searchbox {
+    border-color: rgb(195, 195, 195);
+}
+
+.searchline {
+    width: 90%;
+}
+
+.responsive {
+    float: right;
+    width: 5%;
+    height: auto;
+  }
+
+.fake-input { position: relative; width:240px; }
+.fake-input input { border:none; background-color:#fff; display:block; width: 100%; box-sizing: border-box }
+.fake-input img { position: absolute; top: 2px; right: 5px }

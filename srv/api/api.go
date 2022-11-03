@@ -2,15 +2,20 @@ package api
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	c "restapisrv/srv/constants" // uncomment constant.go file
-	"restapisrv/srv/storage"
+	"regexp"
+	c "restapisrv/constants" // uncomment and rename constant.go file
+	"restapisrv/sendemail"
+	"restapisrv/storage"
+
+	web "restapisrv/webpages"
 	"strings"
 	"time"
 
@@ -19,7 +24,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//const logfile = "/var/log/restapi.log"
+//regexp
+var reg = regexp.MustCompile(`[^A-Za-z0-9]`)
 
 // API программный интерфейс сервера.
 type API struct {
@@ -39,6 +45,7 @@ func New(db storage.RestInterface) *API {
 
 // endpoints регистрация обработчиков API.
 func (api *API) endpoints() {
+
 	api.router.HandleFunc("/products", api.ProductsHandler).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/products", api.AddProductHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/products", api.DeleteProductHandler).Methods(http.MethodDelete, http.MethodOptions)
@@ -55,7 +62,10 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/productprice", api.ProductPriceHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signup", api.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	api.router.HandleFunc("/signin", api.SignInHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.Use(api.Logger)
+	api.router.HandleFunc("/emailconfirm", api.EmailConfirmHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/search", api.ProductSearchHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/webpricelist", api.WebPriceListHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webpages"))))
 }
 
 // Router получение маршрутизатора запросов.
@@ -332,6 +342,68 @@ func (api *API) ProductPriceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+// ProductSearchHandler получение всех цен по названию прордукта prod_name через ?Query.
+func (api *API) ProductSearchHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	var p storage.PriceListItem
+	p.Prod_name = params.Get("p")
+	products, err := api.db.SearchSortedProductsWithStore(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// bytes, err := json.Marshal(products)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// w.Write(bytes)
+	//log.Print(products)
+	dir := "./webpages/search.html"
+	w.Header().Set("Content-Type", "text/html")
+	tmp := template.Must(template.ParseFiles(dir))
+	tmp.Execute(w, products)
+}
+
+// ShortPriceListHandler получение всех цен через ?Query.
+func (api *API) ShortPriceListHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := api.db.ShortPriceList()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// bytes, err := json.Marshal(products)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// w.Write(bytes)
+	dir := "./webpages/search.html"
+	w.Header().Set("Content-Type", "text/html")
+	tmp := template.Must(template.ParseFiles(dir))
+	tmp.Execute(w, products)
+}
+
+// WebPriceListHandler получение всех цен через ?Query.
+func (api *API) WebPriceListHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := api.db.PriceList()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// bytes, err := json.Marshal(products)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// w.Write(bytes)
+	dir := "./webpages/pricelist.html"
+	w.Header().Set("Content-Type", "text/html")
+	tmp := template.Must(template.ParseFiles(dir))
+	tmp.Execute(w, products)
+}
+
+// Users.
 // SignUpHandler добавление нового пользователя.
 func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var user storage.Credentials
@@ -340,7 +412,8 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password+user.Useremail), 8)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -357,31 +430,165 @@ func (api *API) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	timeNow := time.Now().String()
+	confirmLink, err := bcrypt.GenerateFromPassword([]byte(user.Useremail+timeNow), 8)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var userConfirm storage.CredentialsConfirm
+	strConfirmlink := string(confirmLink)
+	strConfirmlink = reg.ReplaceAllString(strConfirmlink, "x")
+	log.Print("ConfirmString is ", strConfirmlink)
+	userConfirm.Useremail = user.Useremail
+	userConfirm.Confirmstring = strConfirmlink
+	err = api.db.SetConfirmString(userConfirm)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	f := c.EmailFrom
+	pass := c.EmailPassword
+	t := []string{user.Useremail}
+	h := c.EmailHost
+	p := c.EmailPort
+	s := "Subject: " + "Активация email адреса\n"
+	b := "Здравствуйте!\n\nДля получения уведомлений об активации, " +
+		"остановке и необходимости продления услуг, необходимо подтвердить адрес электронной почты. " +
+		"Для подтверждения адреса, пожалуйста, перейдите по ссылке: \n" +
+		c.FullURL + "/emailconfirm?k=" + string(strConfirmlink)
+
+	err = sendemail.Sendemail(f, pass, t, b, h, p, s)
+	if err != nil {
+		log.Print(err)
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
 // SignInHandler вход пользователя.
 func (api *API) SignInHandler(w http.ResponseWriter, r *http.Request) {
-	var user storage.Credentials
+	var user storage.CredentialsShort
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	result, err := api.db.SignIn(user)
+	var fixedResult storage.CredentialsFixed
+
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == storage.ErrUserNotFound {
+			fixedResult.Useremail = user.Useremail + " not found"
+			bytes, err := json.Marshal(fixedResult)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			log.Print("!!Not found")
 			w.WriteHeader(http.StatusUnauthorized)
+			w.Write(bytes)
 			return
 		}
 		// If there is an issue with the database, return a 500 error
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password)); err != nil {
-		// If the two passwords don't match, return a 401 status
+	// if result.Userstatus < 1 {
+	// 	fixedResult.Useremail = user.Useremail + " not confirmed"
+	// 	bytes, err := json.Marshal(fixedResult)
+	// 	if err != nil {
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	log.Print("!!Not confirmed")
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	w.Write(bytes)
+	// 	return
+	// }
+
+	err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password+user.Useremail))
+	// If the two passwords don't match, return a 401 status
+	if err != nil {
+		fixedResult.Useremail = user.Useremail + " is illegal"
+		bytes, err := json.Marshal(fixedResult)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Print("!!Illigal")
 		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(bytes)
 		return
 	}
+	fixedResult.Useremail = user.Useremail
+	fixedResult.Usernickname = result.Usernickname
+	fixedResult.Userstatus = result.Userstatus
+	bytes, err := json.Marshal(fixedResult)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Print("!! loggedIned", user)
 	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
 }
+
+// EmailConfirmHandler подтверждение почты.
+func (api *API) EmailConfirmHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	var user storage.CredentialsConfirm
+	user.Confirmstring = params.Get("k")
+
+	result, err := api.db.ConfirmStringAndStatus(user)
+	data := map[string]string{
+		"useremail": result.Useremail,
+		"reply":     "already confirmed",
+	}
+	dir := "./webpages/emailconfirm.html"
+	if err != nil {
+		if err == storage.ErrAlreadyConfirmed {
+			w.WriteHeader(http.StatusOK)
+			err = web.SendWebPage(w, dir, data)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+
+			return
+		}
+		if err == storage.ErrConfirmStringNotFound {
+			data["reply"] = "got invalid confirm string"
+			w.WriteHeader(http.StatusUnauthorized)
+			err = web.SendWebPage(w, dir, data)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			return
+		}
+		// If there is an issue with the database, return a 500 error
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	data["reply"] = "confirmed"
+
+	w.WriteHeader(http.StatusOK)
+	err = web.SendWebPage(w, dir, data)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	//w.Write([]byte("Email " + result.Useremail + " confirmed"))
+}
+
+// // EmailConfirmHandler подтверждение почты.
+// func (api *API) PageHandler(w http.ResponseWriter, r *http.Request) {
+
+// 		// If there is an issue with the database, return a 500 error
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		return
+// }

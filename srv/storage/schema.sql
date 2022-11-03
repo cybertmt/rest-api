@@ -34,8 +34,13 @@ CREATE TABLE products_stores
     PRIMARY KEY (prod_id, store_id)
 );
 CREATE TABLE users (
-  username  TEXT    PRIMARY KEY    NOT NULL,
-  password  TEXT    NOT NULL
+  useremail       TEXT  PRIMARY KEY    NOT NULL,
+  password        TEXT  NOT NULL,
+  userstatus      INT   DEFAULT 0,
+  confirmstring TEXT  DEFAULT '',
+  usernickname    TEXT  DEFAULT '',
+  lastlogindate   TEXT  DEFAULT '',
+  lastlogindevice TEXT  DEFAULT ''
 );
 
 INSERT INTO products (prod_name, prod_tr_name, prod_desc1) VALUES ('Асперин', 'Asperin', 'Асперин: параметры');
@@ -70,9 +75,9 @@ VALUES (3, 2, 45.30);
 INSERT INTO products_stores (prod_id, store_id, price)
 VALUES (3, 3, 39.00);
 
--- INSERT INTO users (username, password)
+-- INSERT INTO users (useremail, password)
 -- VALUES ('user1@yax.ru','user1password');
--- INSERT INTO users (username, password)
+-- INSERT INTO users (useremail, password)
 -- VALUES ('user2@yax.ru','user2password');
--- INSERT INTO users (username, password)
+-- INSERT INTO users (useremail, password)
 -- VALUES ('user3@yax.ru','user3password');

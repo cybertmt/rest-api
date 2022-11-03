@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>search page</title>
+    <link rel="stylesheet" href="css/format.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  </head>
+  <section class="search">
+    <p>
+      <button class="btn" onclick="location.href='https://cybertmtx.crabdance.com/';"><i class="fa fa-home"></i></button>
+    </p>
+    <form action="https://cybertmtx.crabdance.com/search" method="get">
+      <fieldset class="searchbox"> <legend>Название продукта</legend>
+      <p><input class="searchline" type="search" name="p" placeholder="" required></p>
+      </fieldset>
+      <p><input type="reset" value="Очистить"> <input type="submit" value="Найти"> 
+          <input type="button" value="Прайс лист" class="specbutton" 
+          onclick="location.href='https://cybertmtx.crabdance.com/webpricelist';">
+      </p>
+    </form>
+      <div>
+        <table class="wrapper">
+            <thead><td><b>Название</b></td><td><b>Магазин</b></td><td><b>Цена, руб</b></td></tr></thead>
+            {{range . }}
+            <tr>
+                <td>{{.Prod_name}}</td>
+                <td>{{.Store_name}}</td>
+                <td>{{.Price}}</td>
+            </tr>
+            {{end}}
+        </table>
+      </div>
+  </section>
+  </body>
+</html>

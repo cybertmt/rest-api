@@ -1,5 +1,11 @@
 package storage
 
+import "errors"
+
+var ErrUserNotFound = errors.New("user not found")
+var ErrConfirmStringNotFound = errors.New("invalid confirmstring")
+var ErrAlreadyConfirmed = errors.New("already confirmed")
+
 // ProductItem - продукт.
 type ProductItem struct {
 	Prod_id      int    `json:"prod_id"`
@@ -31,7 +37,7 @@ type PriceItem struct {
 	Price    float64 `json:"price"`
 }
 
-// PriceList - цена на товар в магазине.
+// PriceListItem - цена на товар в магазине.
 type PriceListItem struct {
 	Prod_name       string  `json:"prod_name"`
 	Prod_logo       string  `json:"prod_logo"`
@@ -45,7 +51,7 @@ type PriceListItem struct {
 	Price           float64 `json:"price"`
 }
 
-// SearchList - цена на товар в магазине.
+// SearchItem - цена на товар в магазине.
 type SearchItem struct {
 	Prod_name string  `json:"prod_name"`
 	Price     float64 `json:"price"`
@@ -53,26 +59,60 @@ type SearchItem struct {
 
 // Credentials - учетная запись пользователя.
 type Credentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Useremail       string `json:"useremail"`
+	Password        string `json:"password"`
+	Userstatus      int    `json:"status"`
+	Confirmstring   string `json:"confirmedstring"`
+	Usernickname    string `json:"usernickname"`
+	Lastlogindate   string `json:"lastlogindate"`
+	Lastlogindevice string `json:"lastlogindevice"`
+}
+
+// CredentialsFixed - учетная запись пользователя на SignIn.
+type CredentialsFixed struct {
+	Useremail    string `json:"useremail"`
+	Userstatus   int    `json:"status"`
+	Usernickname string `json:"usernickname"`
+}
+
+type CredentialsShort struct {
+	Useremail string `json:"useremail"`
+	Password  string `json:"password"`
+}
+
+type CredentialsConfirm struct {
+	Useremail     string `json:"useremail"`
+	Confirmstring string `json:"confirmstring"`
+	Userstatus    int    `json:"status"`
+}
+
+type CredentialsUserEmailStatus struct {
+	Useremail  string `json:"useremail"`
+	Userstatus int    `json:"status"`
 }
 
 // RestInterface задаёт новый контракт на работу с БД Products Stores.
 type RestInterface interface {
-	Products() ([]ProductItem, error)                          // получение всех продуктов
-	AddProduct(prod ProductItem) error                         // создание новой записи продукта
-	DeleteProduct(prod ProductItem) error                      // удаление продукта по ID
-	DeleteAllProducts() error                                  // удаление всех продуктов, очистка таблицы
-	SearchSortedProducts(sr SearchItem) ([]SearchItem, error)  // выдача продукта для поиска
-	Stores() ([]StoreItem, error)                              // получение всех магазинов
-	AddStore(store StoreItem) error                            // создание новой записи магазина
-	DeleteStore(store StoreItem) error                         // удаление магазина по ID
-	DeleteAllStores() error                                    // удаление всех магазинов, очистка таблицы
-	AddUpdatePrice(price PriceItem) error                      // добавление или обновление цены
-	DeletePrice(price PriceItem) error                         // удаление цены по ID магазина и продукта
-	DeleteAllPrices() error                                    // удаление всех цен, очистка таблицы
-	PriceList() ([]PriceListItem, error)                       // получение всех цен
-	ProductPrice(price PriceListItem) ([]PriceListItem, error) // получение всех цен по названию продукта
-	SignUp(user Credentials) error                             // добавление нового пользователя
-	SignIn(user Credentials) (Credentials, error)              // вход пользователя
+	Products() ([]ProductItem, error)                                           // получение всех продуктов
+	AddProduct(prod ProductItem) error                                          // создание новой записи продукта
+	DeleteProduct(prod ProductItem) error                                       // удаление продукта по ID
+	DeleteAllProducts() error                                                   // удаление всех продуктов, очистка таблицы
+	SearchSortedProducts(sr SearchItem) ([]SearchItem, error)                   // выдача продукта для поиска
+	Stores() ([]StoreItem, error)                                               // получение всех магазинов
+	AddStore(store StoreItem) error                                             // создание новой записи магазина
+	DeleteStore(store StoreItem) error                                          // удаление магазина по ID
+	DeleteAllStores() error                                                     // удаление всех магазинов, очистка таблицы
+	AddUpdatePrice(price PriceItem) error                                       // добавление или обновление цены
+	DeletePrice(price PriceItem) error                                          // удаление цены по ID магазина и продукта
+	DeleteAllPrices() error                                                     // удаление всех цен, очистка таблицы
+	PriceList() ([]PriceListItem, error)                                        // получение всех цен
+	ProductPrice(price PriceListItem) ([]PriceListItem, error)                  // получение всех цен по названию продукта
+	SignUp(user Credentials) error                                              // добавление нового пользователя
+	SignIn(user CredentialsShort) (Credentials, error)                          // вход пользователя
+	UserExistEmailStatus(user CredentialsUserEmailStatus) error                 // существует ли пользователь и вернуть статус
+	SetConfirmString(user CredentialsConfirm) error                             // добавление строки подтверждения почты
+	ConfirmStringAndStatus(user CredentialsConfirm) (CredentialsConfirm, error) // получение строки подтверждения почты и статуса
+	ShortPriceList() ([]SearchItem, error)                                      // получение всех цен короткая форма
+	SearchSortedProductsWithStore(sr PriceListItem) ([]PriceListItem, error)    // выдача продукта для поиска с минимальной ценой и названием магазина
+	//SetUserStatus(user CredentialsConfirm) error                              // изменение статуса пользователя по useremail
 }
