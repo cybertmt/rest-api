@@ -361,7 +361,10 @@ func (api *API) ProductSearchHandler(w http.ResponseWriter, r *http.Request) {
 	//log.Print(products)
 	dir := "./webpages/search.html"
 	w.Header().Set("Content-Type", "text/html")
-	tmp := template.Must(template.ParseFiles(dir))
+	tmp, err := template.ParseFiles(dir)
+	if err != nil {
+		log.Print(err)
+	}
 	tmp.Execute(w, products)
 }
 
@@ -380,7 +383,10 @@ func (api *API) ShortPriceListHandler(w http.ResponseWriter, r *http.Request) {
 	// w.Write(bytes)
 	dir := "./webpages/search.html"
 	w.Header().Set("Content-Type", "text/html")
-	tmp := template.Must(template.ParseFiles(dir))
+	tmp, err := template.ParseFiles(dir)
+	if err != nil {
+		log.Print(err)
+	}
 	tmp.Execute(w, products)
 }
 
@@ -399,7 +405,10 @@ func (api *API) WebPriceListHandler(w http.ResponseWriter, r *http.Request) {
 	// w.Write(bytes)
 	dir := "./webpages/pricelist.html"
 	w.Header().Set("Content-Type", "text/html")
-	tmp := template.Must(template.ParseFiles(dir))
+	tmp, err := template.ParseFiles(dir)
+	if err != nil {
+		log.Print(err)
+	}
 	tmp.Execute(w, products)
 }
 
